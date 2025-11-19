@@ -1,0 +1,140 @@
+### SpendingAnalyzer API - Testing Endpoints
+
+@baseUrl = https://localhost:7001
+@httpUrl = http://localhost:5117
+
+### Health Check
+GET {{httpUrl}}/
+
+### Banks
+
+### Create Bank
+POST {{httpUrl}}/api/banks
+Content-Type: application/json
+
+{
+  "name": "Chase Bank",
+  "bankAccounts": [
+    {
+      "name": "Checking Account",
+      "balance": 5000.00
+    },
+    {
+      "name": "Savings Account",
+      "balance": 10000.00
+    }
+  ]
+}
+
+### Get All Banks
+GET {{httpUrl}}/api/banks
+
+### Get Bank By Id
+GET {{httpUrl}}/api/banks/{bankId}
+
+### Update Bank
+PUT {{httpUrl}}/api/banks/{bankId}
+Content-Type: application/json
+
+{
+  "name": "Chase Bank - Updated"
+}
+
+### Delete Bank (Mark Inactive)
+DELETE {{httpUrl}}/api/banks/{bankId}
+
+### Bank Accounts
+
+### Create Bank Account
+POST {{httpUrl}}/api/bankaccounts
+Content-Type: application/json
+
+{
+  "bankId": "{bankId}",
+  "name": "Investment Account",
+  "balance": 15000.00
+}
+
+### Get All Bank Accounts
+GET {{httpUrl}}/api/bankaccounts
+
+### Get Bank Account By Id
+GET {{httpUrl}}/api/bankaccounts/{accountId}
+
+### Update Bank Account
+PUT {{httpUrl}}/api/bankaccounts/{accountId}
+Content-Type: application/json
+
+{
+  "name": "Investment Account - Updated"
+}
+
+### Set Bank Account Inactive
+DELETE {{httpUrl}}/api/bankaccounts/{accountId}
+
+### Transactions
+
+### Create Transaction
+POST {{httpUrl}}/api/transactions
+Content-Type: application/json
+
+{
+  "description": "Grocery shopping",
+  "accountId": "{accountId}",
+  "recipient": "Walmart",
+  "amount": 150.50
+}
+
+### Get All Transactions
+GET {{httpUrl}}/api/transactions
+
+### Get Transaction By Id
+GET {{httpUrl}}/api/transactions/{transactionId}
+
+### Update Transaction
+PUT {{httpUrl}}/api/transactions/{transactionId}
+Content-Type: application/json
+
+{
+  "description": "Grocery shopping - Updated",
+  "accountId": "{accountId}",
+  "recipient": "Target",
+  "amount": 200.00
+}
+
+### Delete Transaction
+DELETE {{httpUrl}}/api/transactions/{transactionId}
+
+### Transfers
+
+### Create Transfer
+POST {{httpUrl}}/api/transfers
+Content-Type: application/json
+
+{
+  "description": "Transfer to savings",
+  "sourceAccountId": "{sourceAccountId}",
+  "targetAccountId": "{targetAccountId}",
+  "value": 500.00
+}
+
+### Get All Transfers
+GET {{httpUrl}}/api/transfers
+
+### Get Transfer By Id
+GET {{httpUrl}}/api/transfers/{transferId}
+
+### Update Transfer
+PUT {{httpUrl}}/api/transfers/{transferId}
+Content-Type: application/json
+
+{
+  "description": "Transfer to savings - Updated",
+  "sourceAccountId": "{sourceAccountId}",
+  "targetAccountId": "{targetAccountId}",
+  "value": 750.00
+}
+
+### Delete Transfer
+DELETE {{httpUrl}}/api/transfers/{transferId}
+

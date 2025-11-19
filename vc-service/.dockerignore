@@ -1,0 +1,12 @@
+bin/
+obj/
+.vs/
+logs/
+*.user
+*.swp
+*.suo
+*.dbmdl
+*.dbproj.schemaview
+Dockerfile.*
+.git
+.gitignore

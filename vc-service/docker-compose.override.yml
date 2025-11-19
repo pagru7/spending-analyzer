@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  postgres:
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-spending}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-spendingpwd}
+      POSTGRES_DB: ${POSTGRES_DB:-spendingdb}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,0 +1,44 @@
+# Full Stack Docker Compose (Optional)
+# Use this if you want to run both PostgreSQL and API together in containers
+# For development, prefer using docker-compose.yml (database only) + Visual Studio debugging
+
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: spendinganalyzer-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: spending
+      POSTGRES_PASSWORD: spendingpwd
+      POSTGRES_DB: spendingdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: spendinganalyzer-api:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=spendingdb;Username=spending;Password=spendingpwd
+    ports:
+      - "5117:8080"
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  postgres_data:

@@ -1,52 +1,7 @@
-version: '3.9'
-
-services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: spendinganalyzer-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: spending
-      POSTGRES_PASSWORD: spendingpwd
-      POSTGRES_DB: spendingdb
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  api:
-    build:
-      context: ./vc-service
-      dockerfile: Dockerfile
-    image: spendinganalyzer-api:latest
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=spendingdb;Username=spending;Password=spendingpwd
-    ports:
-      - '5117:8080'
-    volumes:
-      - ./vc-service/logs:/app/logs
-
-  web:
-    build:
-      context: ./vc-client/sa-client
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: http://localhost:5117
-    image: spendinganalyzer-web:latest
-    depends_on:
-      - api
-    ports:
-      - '5173:80'
-
-volumes:
-  postgres_data:
+# This file has been replaced with separate docker-compose files for each project:
+# - vc-service/docker-compose.yml (for API and database)
+# - vc-client/sa-client/docker-compose.yml (for web frontend)
+# Use the individual files to run services independently in different environments
+#
+# To run API service: cd vc-service && docker compose up
+# To run web client: cd vc-client/sa-client && docker compose up

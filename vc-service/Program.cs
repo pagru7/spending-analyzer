@@ -59,13 +59,6 @@ try
 
     var app = builder.Build();
 
-    // Apply any pending EF Core migrations at startup.
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<SpendingAnalyzerDbContext>();
-        dbContext.Database.Migrate();
-    }
-
     // Configure the HTTP request pipeline
     app.UseSerilogRequestLogging();
 

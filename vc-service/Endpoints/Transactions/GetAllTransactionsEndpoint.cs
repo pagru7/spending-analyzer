@@ -1,5 +1,7 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SpendingAnalyzer.Data;
 using SpendingAnalyzer.Endpoints.Transactions.Contracts;
 
@@ -8,10 +10,12 @@ namespace SpendingAnalyzer.Endpoints.Transactions;
 public class GetAllTransactionsEndpoint : EndpointWithoutRequest<List<TransactionResponse>>
 {
     private readonly SpendingAnalyzerDbContext _db;
+    private readonly ILogger<GetAllTransactionsEndpoint> _logger;
 
-    public GetAllTransactionsEndpoint(SpendingAnalyzerDbContext db)
+    public GetAllTransactionsEndpoint(SpendingAnalyzerDbContext db, ILogger<GetAllTransactionsEndpoint> logger)
     {
         _db = db;
+        _logger = logger;
     }
 
     public override void Configure()
@@ -23,19 +27,36 @@ public class GetAllTransactionsEndpoint : EndpointWithoutRequest<List<Transactio
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var transactions = await _db.Transactions
-            .Include(t => t.Account)
-            .ToListAsync(ct);
-
-        Response = transactions.Select(t => new TransactionResponse
+        try
         {
-            Id = t.Id,
-            Description = t.Description,
-            AccountId = t.AccountId,
-            AccountName = t.Account.Name,
-            Recipient = t.Recipient,
-            Amount = t.Amount
-        }).ToList();
+            _logger.LogInformation("Fetching all transactions.");
+            var transactions = await _db.Transactions
+                .Include(t => t.Account)
+                .ToListAsync(ct);
+            
+            _logger.LogInformation("Fetched {TransactionCount} transactions from database.", transactions.Count);
+
+            var response = transactions.Select(t => new TransactionResponse
+            {
+                Id = t.Id,
+                Description = t.Description,
+                AccountId = t.AccountId,
+                AccountName = t.Account.Name,
+                Recipient = t.Recipient,
+                Amount = t.Amount
+            }).ToList();
+
+            Response = response;
+            _logger.LogInformation("Returning {TransactionCount} transactions.", response.Count);
+        }
+        catch (OperationCanceledException ex) when (ct.IsCancellationRequested)
+        {
+            _logger.LogWarning(ex, "Request was canceled by the caller.");
+            if (!HttpContext.Response.HasStarted)
+            {
+                HttpContext.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
+            }
+        }
     }
 }
 

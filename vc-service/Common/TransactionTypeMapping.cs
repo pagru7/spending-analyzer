@@ -5,23 +5,21 @@ using System.Text;
 
 namespace SpendingAnalyzer.Common
 {
-    internal class TransactionTypeMapping
+    internal static class TransactionTypeMapping
     {
-        public ConcurrentDictionary<TransactionType, string> Mapping =>
-            new ConcurrentDictionary<TransactionType, string>
+        public static ConcurrentDictionary<string, TransactionType> Mapping =>
+            new ConcurrentDictionary<string, TransactionType>
             {
-                [TransactionType.StandingOrder] = "zlecenie stałe",
-                [TransactionType.WebPaymentMobileCode] = "płatność web - kod mobilny",
-                [TransactionType.AccountTransfer] = "przelew na rachunek",
-                [TransactionType.CardPayment] = "płatność kartą",
-                [TransactionType.IncomingPhoneTransferExternal] = "przelew na telefon przychodz. zew.",
-                [TransactionType.OutgoingPhoneTransferExternal] = "przelew na telefon wychodzący zew.",
-                [TransactionType.TerminalPurchaseMobileCode] = "zakup w terminalu - kod mobilny",
-                [TransactionType.ATMWithdrawal] = "wypłata z bankomatu",
-                [TransactionType.AccountDeposit] = "przelew z rachunku"
+                ["zlecenie stałe"] = TransactionType.StandingOrder,
+                ["płatność web - kod mobilny"] = TransactionType.WebPaymentMobileCode,
+                ["przelew na rachunek"] = TransactionType.AccountTransfer,
+                ["płatność kartą"] = TransactionType.CardPayment,
+                ["przelew na telefon przychodz. zew."] = TransactionType.IncomingPhoneTransferExternal,
+                ["przelew na telefon wychodzący zew."] = TransactionType.OutgoingPhoneTransferExternal,
+                ["zakup w terminalu - kod mobilny"] = TransactionType.TerminalPurchaseMobileCode,
+                ["wypłata z bankomatu"] = TransactionType.ATMWithdrawal,
+                ["przelew z rachunku"] = TransactionType.AccountDeposit
             };
-
-
     }
 
     internal enum TransactionType

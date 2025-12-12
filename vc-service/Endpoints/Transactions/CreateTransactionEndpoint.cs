@@ -19,7 +19,7 @@ public class CreateTransactionEndpoint : Endpoint<CreateTransactionRequest, Tran
     {
         Post("/api/transactions");
         AllowAnonymous();
-        Description(q => q.WithTags("Transactions").Produces<TransactionResponse>(201));
+        Description(q => q.WithTags("Transactions").Produces<TransactionResponse>(201).Accepts<CreateTransactionRequest>("application/json"));
     }
 
     public override async Task HandleAsync(CreateTransactionRequest req, CancellationToken ct)

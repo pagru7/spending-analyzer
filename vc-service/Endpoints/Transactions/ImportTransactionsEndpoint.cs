@@ -1,10 +1,13 @@
 ﻿using Csv;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
+using SpendingAnalyzer.Common;
 using SpendingAnalyzer.Data;
 using SpendingAnalyzer.Entities;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace SpendingAnalyzer.Endpoints.Transactions
@@ -13,8 +16,9 @@ namespace SpendingAnalyzer.Endpoints.Transactions
     {
         private readonly SpendingAnalyzerDbContext _db;
         private readonly ILogger<ImportTransactionsEndpoint> _logger;
+
         public ImportTransactionsEndpoint(
-            SpendingAnalyzerDbContext db, 
+            SpendingAnalyzerDbContext db,
             ILogger<ImportTransactionsEndpoint> logger)
         {
             _db = db;
@@ -28,111 +32,138 @@ namespace SpendingAnalyzer.Endpoints.Transactions
             AllowFileUploads();
             Description(q => q.WithTags("Transactions").Produces<ImportTransactionsRequest>(200));
         }
+
         public override async Task HandleAsync(ImportTransactionsRequest req, CancellationToken ct)
         {
-            if (req.Transactions is null)
-                Response = new ImportTransactionsResponse(0);
-
-            using var stream = req.Transactions?.OpenReadStream();
-            // Read all bytes and decode text with UTF-8; if replacement chars appear, fallback to Windows-1250.
-            using var ms = new MemoryStream();
-            stream.CopyTo(ms);
-            var bytes = ms.ToArray();
-
-            string textUtf8 = Encoding.UTF8.GetString(bytes);
-            string text;
-            if (textUtf8.Contains('\uFFFD')) // replacement char present => likely wrong encoding
+            try
             {
-                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-                // Common for Polish bank CSV exports
-                var cp1250 = Encoding.GetEncoding(1250); // "windows-1250"
-                text = cp1250.GetString(bytes);
+                if (req.Transactions is null)
+                {
+                    Response = new ImportTransactionsResponse(0);
+                    return;
+                }
+
+                using var stream = req.Transactions.OpenReadStream();
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms, ct);
+                var bytes = ms.ToArray();
+
+                string text;
+                string textUtf8 = Encoding.UTF8.GetString(bytes);
+                if (textUtf8.Contains('\uFFFD'))
+                {
+                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                    var cp1250 = Encoding.GetEncoding(1250);
+                    text = cp1250.GetString(bytes);
+                }
+                else
+                {
+                    text = textUtf8;
+                }
+
+                var content = CsvReader.ReadFromText(text, new CsvOptions
+                {
+                    Separator = ',',
+                    HeaderMode = HeaderMode.HeaderPresent,
+                }).ToList();
+
+                var bankAccountIdQuery = _db.BankAccounts
+                    .Include(ba => ba.Bank)
+                    .Where(b => b.Bank.Name.ToLower().Contains("inteligo") && b.Name.ToLower().Contains("osobiste"));
+
+                _logger.LogInformation(bankAccountIdQuery.ToQueryString());
+                var bankAccount = await bankAccountIdQuery.FirstOrDefaultAsync(ct);
+                if (bankAccount is null)
+                {
+                    _logger.LogWarning("Bank account for import not found.");
+                    Response = new ImportTransactionsResponse(0);
+                    return;
+                }
+
+                var newTransactions = ProcessContent(content, bankAccount.Id, ct)?.ToList();
+                if (newTransactions is null || !newTransactions.Any())
+                {
+                    Response = new ImportTransactionsResponse(0);
+                    return;
+                }
+
+                var newTransactionIds = newTransactions.Select(nt => nt.ExternalId).ToList();
+
+                var existingExternalIds = await _db.Transactions
+                    .Where(t => newTransactionIds.Contains(t.ExternalId))
+                    .Select(t => t.ExternalId)
+                    .ToHashSetAsync(ct);
+
+                var transactionsToAdd = newTransactions.Where(nt => !existingExternalIds.Contains(nt.ExternalId));
+
+                await _db.Transactions.AddRangeAsync(transactionsToAdd, ct);
+                var addedTransactions = await _db.SaveChangesAsync(ct);
+
+                Response = new ImportTransactionsResponse(addedTransactions);
             }
-            else
+            catch (Exception ex)
             {
-                text = textUtf8;
+                _logger.LogError(ex, "An unexpected error occurred during transaction import.");
+                ThrowError("An unexpected error occurred. Please try again later.");
             }
-
-            
-
-            var content = Csv.CsvReader.ReadFromText(text, new Csv.CsvOptions
-            {
-                Separator = ',',
-                HeaderMode = Csv.HeaderMode.HeaderPresent,
-                
-            }).ToList();
-
-            var bankAccountIdQuery = _db.BankAccounts
-                .Include(ba => ba.Bank)
-                .Where(b => b.Bank.Name.ToLower().Contains("inteligo") && b.Name.ToLower().Contains("osobiste"));
-
-            _logger.LogInformation(bankAccountIdQuery.ToQueryString());
-            var bankAccountId = bankAccountIdQuery.First().Id;
-
-            var newTransactions = ProcessContent(content, bankAccountId, ct);
-            var newTransactionIds = newTransactions?.Select(nt => nt.ExternalId);
-
-            var notExistingExternalIdsQuery = _db.Transactions
-                .Select(t => t.ExternalId)
-                .Where(t => newTransactionIds.Contains(t));
-
-            _logger.LogInformation(notExistingExternalIdsQuery.ToQueryString());
-
-            var existingExternalIds = notExistingExternalIdsQuery.ToHashSet();
-            var transactionsToAdd = newTransactions
-                .Where(nt => !existingExternalIds.Contains(nt.ExternalId));
-
-            await _db.Transactions.AddRangeAsync(transactionsToAdd);
-            var addedTransactions = await _db.SaveChangesAsync();
-
-
-            await Task.CompletedTask; // Placeholder for async operation.
-            Response = new ImportTransactionsResponse(addedTransactions);
-            
         }
 
         private IEnumerable<Transaction>? ProcessContent(IEnumerable<ICsvLine> content, Guid bankAccountId, CancellationToken ct)
-            => content is null || !content.Any()
-                ? null
-                : content.Select(line => InitializeTransaction(line, bankAccountId));
+            => content?.Select(line => InitializeTransaction(line, bankAccountId)).Where(t => t is not null)!;
 
-        private Transaction InitializeTransaction(ICsvLine line, Guid bankAccountId)
+        private Transaction? InitializeTransaction(ICsvLine line, Guid bankAccountId)
         {
-            var t = new Transaction
+            if (!int.TryParse(line[0], out var externalId))
+            {
+                _logger.LogError("Failed to parse ExternalId: {ExternalId}", line[0]);
+                return null;
+            }
+
+            if (!DateTime.TryParse(line[2], CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var issueDate))
+            {
+                _logger.LogError("Failed to parse IssueDate: {IssueDate}", line[2]);
+                return null;
+            }
+
+            var csvType = line[3].ToLower();
+            if (!TransactionTypeMapping.Mapping.TryGetValue(csvType, out var transactionType))
+            {
+                _logger.LogWarning("Could not map transaction type: {CsvType}", line[3]);
+                return null;
+            }
+
+            if (!Enum.TryParse<Currency>(line[5], true, out var currency))
+            {
+                _logger.LogError("Failed to parse Currency: {Currency}", line[5]);
+                return null;
+            }
+
+            if (!decimal.TryParse(line[4], NumberStyles.Float, CultureInfo.InvariantCulture, out var amount))
+            {
+                _logger.LogError("Failed to parse Amount: {Amount}", line[4]);
+                return null;
+            }
+
+            if (!decimal.TryParse(line[6], NumberStyles.Float, CultureInfo.InvariantCulture, out var balance))
+            {
+                _logger.LogError("Failed to parse Balance: {Balance}", line[6]);
+                return null;
+            }
+
+            return new Transaction
             {
                 AccountId = bankAccountId,
-                ExternalId = int.Parse(line[0]),
-                IssueDate = DateTime.Parse(line[2],System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeLocal).ToUniversalTime(),
-                Type = line[3],
-                //Amount = decimal.Parse(line[4]),
-                Currency = Enum.Parse<Currency>(line[5]),
-                //Balance = decimal.Parse(line[6]),
+                ExternalId = externalId,
+                IssueDate = issueDate.ToUniversalTime(),
+                Type = (short)transactionType,
+                Amount = amount,
+                Currency = currency,
+                Balance = balance,
                 IssuerBankAccountNumber = line[7],
                 IssuerName = line[8],
                 Description = line[9],
                 Description2 = line[10],
             };
-
-
-            if(double.TryParse(line[4], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var amount))
-            {
-                t.Amount = (decimal)amount;
-            }
-            else
-            {
-                _logger.LogError("Failed to parse Amount: {Amount}", line[4]);
-            }
-
-            if(double.TryParse(line[6], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var balance))
-            {
-                t.Balance = (decimal)balance;
-            }
-            else
-            {
-                _logger.LogError("Failed to parse Balance: {Balance}", line[6]);
-            }
-
-            return t;
         }
     }
 

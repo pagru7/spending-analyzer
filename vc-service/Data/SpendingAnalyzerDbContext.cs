@@ -54,6 +54,7 @@ public class SpendingAnalyzerDbContext : DbContext
             entity.Property(e => e.Description).IsRequired().HasMaxLength(500);
             entity.Property(e => e.Recipient).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Type).HasColumnName("TransactionType");
             
             entity.HasOne(e => e.Account)
                 .WithMany(e => e.Transactions)

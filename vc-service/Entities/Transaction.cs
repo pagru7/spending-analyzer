@@ -20,7 +20,7 @@ public class Transaction
     /// <summary>
     /// Gets or sets the type identifier associated with the current instance.
     /// </summary>
-    public string Type { get; set; } = string.Empty;
+    public short? Type { get; set; } 
 
     /// <summary>
     /// Gets or sets the monetary amount associated with the transaction.

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SpendingAnalyzer.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -51,9 +51,17 @@ namespace SpendingAnalyzer.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    Recipient = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    IssueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExternalId = table.Column<int>(type: "integer", nullable: false),
+                    TransactionType = table.Column<short>(type: "smallint", nullable: true),
                     Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    Currency = table.Column<int>(type: "integer", nullable: false),
+                    Balance = table.Column<decimal>(type: "numeric", nullable: false),
+                    IssuerBankAccountNumber = table.Column<string>(type: "text", nullable: false),
+                    IssuerName = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    Description2 = table.Column<string>(type: "text", nullable: false),
+                    Recipient = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     AccountId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>

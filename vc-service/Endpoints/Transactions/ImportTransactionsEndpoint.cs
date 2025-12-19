@@ -65,7 +65,7 @@ namespace SpendingAnalyzer.Endpoints.Transactions
                 {
                     Separator = ',',
                     HeaderMode = HeaderMode.HeaderPresent,
-                }).ToList();
+                }).ToArray();
 
                 var bankAccountIdQuery = _db.BankAccounts
                     .Include(ba => ba.Bank)

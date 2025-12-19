@@ -12,15 +12,15 @@ using SpendingAnalyzer.Data;
 namespace SpendingAnalyzer.Migrations
 {
     [DbContext(typeof(SpendingAnalyzerDbContext))]
-    [Migration("20251101223420_Extend transaction properties")]
-    partial class Extendtransactionproperties
+    [Migration("20251218181853_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.0-rc.2.25502.107")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -124,9 +124,9 @@ namespace SpendingAnalyzer.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<short?>("Type")
+                        .HasColumnType("smallint")
+                        .HasColumnName("TransactionType");
 
                     b.HasKey("Id");
 

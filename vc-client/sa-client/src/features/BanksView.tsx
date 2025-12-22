@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { currencyFormatter } from '@/lib/formatters';
 import type { BankResponse } from '@/types/api';
 
 interface BanksViewProps {
@@ -25,12 +26,6 @@ interface BanksViewProps {
   busyBankId: string | null;
   actionError: string | null;
 }
-
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
-});
 
 const BanksView = ({
   banks,

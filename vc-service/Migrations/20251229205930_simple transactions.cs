@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace SpendingAnalyzer.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class simpletransactions : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,7 +16,8 @@ namespace SpendingAnalyzer.Migrations
                 name: "Banks",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     IsInactive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
                 },
@@ -28,12 +30,13 @@ namespace SpendingAnalyzer.Migrations
                 name: "BankAccounts",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Balance = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     IsInactive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
-                    BankId = table.Column<Guid>(type: "uuid", nullable: false)
+                    BankId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -47,13 +50,14 @@ namespace SpendingAnalyzer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Transactions",
+                name: "ImportedTransactions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    IssueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ExternalId = table.Column<int>(type: "integer", nullable: false),
-                    TransactionType = table.Column<short>(type: "smallint", nullable: true),
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IssueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ExternalId = table.Column<int>(type: "integer", nullable: true),
+                    TransactionType = table.Column<int>(type: "integer", nullable: true),
                     Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Currency = table.Column<int>(type: "integer", nullable: false),
                     Balance = table.Column<decimal>(type: "numeric", nullable: false),
@@ -62,7 +66,34 @@ namespace SpendingAnalyzer.Migrations
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Description2 = table.Column<string>(type: "text", nullable: false),
                     Recipient = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    AccountId = table.Column<Guid>(type: "uuid", nullable: false)
+                    AccountId = table.Column<int>(type: "integer", nullable: false),
+                    TransactionId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ImportedTransactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ImportedTransactions_BankAccounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "BankAccounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Transactions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TransactionDate = table.Column<DateOnly>(type: "DATE", nullable: false),
+                    Amount = table.Column<double>(type: "numeric(18,2)", nullable: false),
+                    Recipient = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    Balance = table.Column<double>(type: "numeric(18,2)", nullable: false),
+                    ImportedTransactionId = table.Column<int>(type: "integer", nullable: true),
+                    AccountId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -72,34 +103,13 @@ namespace SpendingAnalyzer.Migrations
                         column: x => x.AccountId,
                         principalTable: "BankAccounts",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Transfers",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    Value = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    SourceAccountId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TargetAccountId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Transfers", x => x.Id);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Transfers_BankAccounts_SourceAccountId",
-                        column: x => x.SourceAccountId,
-                        principalTable: "BankAccounts",
+                        name: "FK_Transactions_ImportedTransactions_ImportedTransactionId",
+                        column: x => x.ImportedTransactionId,
+                        principalTable: "ImportedTransactions",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Transfers_BankAccounts_TargetAccountId",
-                        column: x => x.TargetAccountId,
-                        principalTable: "BankAccounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateIndex(
@@ -108,19 +118,20 @@ namespace SpendingAnalyzer.Migrations
                 column: "BankId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ImportedTransactions_AccountId",
+                table: "ImportedTransactions",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Transactions_AccountId",
                 table: "Transactions",
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transfers_SourceAccountId",
-                table: "Transfers",
-                column: "SourceAccountId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Transfers_TargetAccountId",
-                table: "Transfers",
-                column: "TargetAccountId");
+                name: "IX_Transactions_ImportedTransactionId",
+                table: "Transactions",
+                column: "ImportedTransactionId",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -130,7 +141,7 @@ namespace SpendingAnalyzer.Migrations
                 name: "Transactions");
 
             migrationBuilder.DropTable(
-                name: "Transfers");
+                name: "ImportedTransactions");
 
             migrationBuilder.DropTable(
                 name: "BankAccounts");

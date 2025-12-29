@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SpendingAnalyzer.Data;
@@ -11,9 +12,11 @@ using SpendingAnalyzer.Data;
 namespace SpendingAnalyzer.Migrations
 {
     [DbContext(typeof(SpendingAnalyzerDbContext))]
-    partial class SpendingAnalyzerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251229205930_simple transactions")]
+    partial class simpletransactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,10 +33,13 @@ namespace SpendingAnalyzer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("BankId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("CreationDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsInactive")
@@ -60,9 +66,6 @@ namespace SpendingAnalyzer.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsInactive")
                         .ValueGeneratedOnAdd()
@@ -95,9 +98,6 @@ namespace SpendingAnalyzer.Migrations
 
                     b.Property<decimal>("Balance")
                         .HasColumnType("numeric");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Currency")
                         .HasColumnType("integer");
@@ -155,10 +155,10 @@ namespace SpendingAnalyzer.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("Amount")
+                    b.Property<double>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("Balance")
+                    b.Property<double>("Balance")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -193,7 +193,7 @@ namespace SpendingAnalyzer.Migrations
             modelBuilder.Entity("SpendingAnalyzer.Entities.Account", b =>
                 {
                     b.HasOne("SpendingAnalyzer.Entities.Bank", "Bank")
-                        .WithMany("Accounts")
+                        .WithMany("BankAccounts")
                         .HasForeignKey("BankId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -239,7 +239,7 @@ namespace SpendingAnalyzer.Migrations
 
             modelBuilder.Entity("SpendingAnalyzer.Entities.Bank", b =>
                 {
-                    b.Navigation("Accounts");
+                    b.Navigation("BankAccounts");
                 });
 
             modelBuilder.Entity("SpendingAnalyzer.Entities.ImportedTransaction", b =>

@@ -23,7 +23,7 @@ public class UpdateTransactionEndpoint : Endpoint<UpdateTransactionRequest, Tran
 
     public override async Task HandleAsync(UpdateTransactionRequest req, CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var id = Route<int>("id");
 
         var transaction = await _db.Transactions
             .Include(t => t.Account)

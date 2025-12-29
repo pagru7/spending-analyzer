@@ -5,33 +5,20 @@ using System.Text;
 
 namespace SpendingAnalyzer.Common
 {
-    internal static class TransactionTypeMapping
+    internal static class ImportTransactionTypeMapping
     {
-        public static ConcurrentDictionary<string, TransactionType> Mapping =>
-            new ConcurrentDictionary<string, TransactionType>
+        public static ConcurrentDictionary<string, ImportTransactionType> Mapping =>
+            new ConcurrentDictionary<string, ImportTransactionType>
             {
-                ["zlecenie stałe"] = TransactionType.StandingOrder,
-                ["płatność web - kod mobilny"] = TransactionType.WebPaymentMobileCode,
-                ["przelew na rachunek"] = TransactionType.AccountTransfer,
-                ["płatność kartą"] = TransactionType.CardPayment,
-                ["przelew na telefon przychodz. zew."] = TransactionType.IncomingPhoneTransferExternal,
-                ["przelew na telefon wychodzący zew."] = TransactionType.OutgoingPhoneTransferExternal,
-                ["zakup w terminalu - kod mobilny"] = TransactionType.TerminalPurchaseMobileCode,
-                ["wypłata z bankomatu"] = TransactionType.ATMWithdrawal,
-                ["przelew z rachunku"] = TransactionType.AccountDeposit
+                ["zlecenie stałe"] = ImportTransactionType.StandingOrder,
+                ["płatność web - kod mobilny"] = ImportTransactionType.WebPaymentMobileCode,
+                ["przelew na rachunek"] = ImportTransactionType.AccountTransfer,
+                ["płatność kartą"] = ImportTransactionType.CardPayment,
+                ["przelew na telefon przychodz. zew."] = ImportTransactionType.IncomingPhoneTransferExternal,
+                ["przelew na telefon wychodzący zew."] = ImportTransactionType.OutgoingPhoneTransferExternal,
+                ["zakup w terminalu - kod mobilny"] = ImportTransactionType.TerminalPurchaseMobileCode,
+                ["wypłata z bankomatu"] = ImportTransactionType.ATMWithdrawal,
+                ["przelew z rachunku"] = ImportTransactionType.AccountDeposit
             };
-    }
-
-    internal enum TransactionType
-    {
-        StandingOrder,
-        WebPaymentMobileCode,
-        AccountTransfer,
-        CardPayment,
-        IncomingPhoneTransferExternal,
-        OutgoingPhoneTransferExternal,
-        TerminalPurchaseMobileCode,
-        ATMWithdrawal,
-        AccountDeposit
     }
 }

@@ -23,10 +23,12 @@ public class GetBankAccountByIdEndpoint : EndpointWithoutRequest<BankAccountDeta
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var id = Route<int>("id");
 
         var bankAccount = await _db.BankAccounts
             .Include(ba => ba.Bank)
+            .Include(t => t.Transactions)
+               .Where(t => t.Transactions.LastOrDefault() != null)
             .FirstOrDefaultAsync(ba => ba.Id == id, ct);
 
         if (bankAccount is null)
@@ -39,15 +41,11 @@ public class GetBankAccountByIdEndpoint : EndpointWithoutRequest<BankAccountDeta
         {
             Id = bankAccount.Id,
             Name = bankAccount.Name,
-            CreationDate = bankAccount.CreationDate,
-            Balance = bankAccount.Balance,
+            CreationDate = bankAccount.CreatedAt,
+            Balance = bankAccount.Transactions.LastOrDefault()!.Balance,
             IsInactive = bankAccount.IsInactive,
             BankId = bankAccount.BankId,
             BankName = bankAccount.Bank.Name
         };
     }
 }
-
-
-
-

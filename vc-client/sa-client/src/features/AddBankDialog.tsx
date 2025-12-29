@@ -101,6 +101,7 @@ const AddBankDialog = ({
             <Input
               id="bank-name"
               placeholder="My Bank"
+              autoComplete="off"
               {...form.register('name', { required: 'Name is required' })}
             />
             {form.formState.errors.name ? (
@@ -138,6 +139,7 @@ const AddBankDialog = ({
                       <Input
                         id={`account-name-${index}`}
                         placeholder="Checking"
+                        autoComplete="off"
                         {...form.register(`bankAccounts.${index}.name`, {
                           validate: (value: string) =>
                             value.trim().length > 0 ||
@@ -175,6 +177,7 @@ const AddBankDialog = ({
                       type="number"
                       step="0.01"
                       placeholder="0.00"
+                      autoComplete="off"
                       {...form.register(`bankAccounts.${index}.balance`, {
                         validate: (value: string) =>
                           value.trim().length === 0 ||

@@ -23,7 +23,7 @@ public class GetTransactionByIdEndpoint : EndpointWithoutRequest<TransactionResp
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var id = Route<int>("id");
 
         var transaction = await _db.Transactions
             .Include(t => t.Account)

@@ -4,10 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SpendingAnalyzer.Common;
 using SpendingAnalyzer.Data;
 using SpendingAnalyzer.Entities;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 
 namespace SpendingAnalyzer.Endpoints.Transactions
@@ -87,16 +84,19 @@ namespace SpendingAnalyzer.Endpoints.Transactions
                     return;
                 }
 
-                var newTransactionIds = newTransactions.Select(nt => nt.ExternalId).ToList();
+                var newTransactionIds = newTransactions
+                    .Select(nt => nt.ExternalId).ToList();
 
-                var existingExternalIds = await _db.Transactions
+                var existingExternalIds = await _db.ImportedTransactions
                     .Where(t => newTransactionIds.Contains(t.ExternalId))
                     .Select(t => t.ExternalId)
                     .ToHashSetAsync(ct);
 
-                var transactionsToAdd = newTransactions.Where(nt => !existingExternalIds.Contains(nt.ExternalId));
+                var transactionsToAdd = newTransactions
+                    .Where(nt => !existingExternalIds.Contains(nt.ExternalId));
 
-                await _db.Transactions.AddRangeAsync(transactionsToAdd, ct);
+                await _db.ImportedTransactions
+                    .AddRangeAsync(transactionsToAdd, ct);
                 var addedTransactions = await _db.SaveChangesAsync(ct);
 
                 Response = new ImportTransactionsResponse(addedTransactions);
@@ -108,10 +108,10 @@ namespace SpendingAnalyzer.Endpoints.Transactions
             }
         }
 
-        private IEnumerable<Transaction>? ProcessContent(IEnumerable<ICsvLine> content, Guid bankAccountId, CancellationToken ct)
+        private IEnumerable<ImportedTransaction>? ProcessContent(IEnumerable<ICsvLine> content, int bankAccountId, CancellationToken ct)
             => content?.Select(line => InitializeTransaction(line, bankAccountId)).Where(t => t is not null)!;
 
-        private Transaction? InitializeTransaction(ICsvLine line, Guid bankAccountId)
+        private ImportedTransaction? InitializeTransaction(ICsvLine line, int bankAccountId)
         {
             if (!int.TryParse(line[0], out var externalId))
             {
@@ -126,7 +126,7 @@ namespace SpendingAnalyzer.Endpoints.Transactions
             }
 
             var csvType = line[3].ToLower();
-            if (!TransactionTypeMapping.Mapping.TryGetValue(csvType, out var transactionType))
+            if (!ImportTransactionTypeMapping.Mapping.TryGetValue(csvType, out var transactionType))
             {
                 _logger.LogWarning("Could not map transaction type: {CsvType}", line[3]);
                 return null;
@@ -150,12 +150,12 @@ namespace SpendingAnalyzer.Endpoints.Transactions
                 return null;
             }
 
-            return new Transaction
+            return new ImportedTransaction
             {
                 AccountId = bankAccountId,
                 ExternalId = externalId,
                 IssueDate = issueDate.ToUniversalTime(),
-                Type = (short)transactionType,
+                Type = transactionType,
                 Amount = amount,
                 Currency = currency,
                 Balance = balance,

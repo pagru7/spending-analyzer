@@ -23,10 +23,12 @@ public class GetBankByIdEndpoint : EndpointWithoutRequest<BankResponse>
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var id = Route<int>("id");
 
         var bank = await _db.Banks
-            .Include(b => b.BankAccounts)
+            .Include(b => b.Accounts)
+            .Include(t => t.Accounts)
+               .Where(t => t.Accounts.Where(a => a.Transactions.FirstOrDefault() != null).Any())
             .FirstOrDefaultAsync(b => b.Id == id, ct);
 
         if (bank is null)
@@ -40,12 +42,12 @@ public class GetBankByIdEndpoint : EndpointWithoutRequest<BankResponse>
             Id = bank.Id,
             Name = bank.Name,
             IsInactive = bank.IsInactive,
-            BankAccounts = bank.BankAccounts.Select(a => new BankAccountResponse
+            BankAccounts = bank.Accounts.Select(a => new BankAccountResponse
             {
                 Id = a.Id,
                 Name = a.Name,
-                CreationDate = a.CreationDate,
-                Balance = a.Balance,
+                CreationDate = a.CreatedAt,
+                Balance = a.Transactions.FirstOrDefault()?.Balance ?? 0,
                 IsInactive = a.IsInactive
             }).ToList()
         };

@@ -22,7 +22,7 @@ public class DeleteBankEndpoint : EndpointWithoutRequest
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var id = Route<int>("id");
 
         var bank = await _db.Banks.FirstOrDefaultAsync(b => b.Id == id, ct);
 

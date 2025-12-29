@@ -1,11 +1,11 @@
 namespace SpendingAnalyzer.Entities;
 
-public class Bank
+public class Bank : Entity
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public bool IsInactive { get; set; }
     
     // Navigation property
-    public ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
+    public ICollection<Account> Accounts { get; set; } = new List<Account>();
 }

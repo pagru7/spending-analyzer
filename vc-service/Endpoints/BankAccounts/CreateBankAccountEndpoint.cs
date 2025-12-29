@@ -33,14 +33,16 @@ public class CreateBankAccountEndpoint : Endpoint<CreateBankAccountRequest, Bank
             return;
         }
 
-        var bankAccount = new BankAccount
+        var bankAccount = req.ToAccount();
+        var initialTransaction = new Transaction()
         {
-            Id = Guid.NewGuid(),
-            Name = req.Name,
+            Account = bankAccount,
+            Amount = req.Balance,
             Balance = req.Balance,
-            CreationDate = DateTime.UtcNow,
-            IsInactive = false,
-            BankId = req.BankId
+            CreatedAt = DateTime.UtcNow,
+            Description = $"Initial balance for account {bankAccount.Name}",
+            TransactionDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            Recipient = "Initial Balance"
         };
 
         _db.BankAccounts.Add(bankAccount);
@@ -50,15 +52,11 @@ public class CreateBankAccountEndpoint : Endpoint<CreateBankAccountRequest, Bank
         {
             Id = bankAccount.Id,
             Name = bankAccount.Name,
-            CreationDate = bankAccount.CreationDate,
-            Balance = bankAccount.Balance,
+            CreationDate = bankAccount.CreatedAt,
+            Balance = initialTransaction.Balance,
             IsInactive = bankAccount.IsInactive,
             BankId = bank.Id,
             BankName = bank.Name
         };
     }
 }
-
-
-
-

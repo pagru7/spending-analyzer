@@ -33,6 +33,7 @@ import AddBankDialog from './features/AddBankDialog';
 import AddTransactionDialog from './features/AddTransactionDialog';
 import AddTransferDialog from './features/AddTransferDialog';
 import BanksView from './features/BanksView';
+import ImportTransactionsDialog from './features/ImportTransactionsDialog';
 import TransactionsView from './features/TransactionsView';
 import TransfersView from './features/TransfersView';
 import UpdateBankDialog from './features/UpdateBankDialog';
@@ -44,6 +45,8 @@ function App() {
   const [isAddBankOpen, setIsAddBankOpen] = useState(false);
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const [isAddTransferOpen, setIsAddTransferOpen] = useState(false);
+  const [isImportTransactionsOpen, setIsImportTransactionsOpen] =
+    useState(false);
   const [bankToEdit, setBankToEdit] = useState<BankResponse | null>(null);
   const [bankActionError, setBankActionError] = useState<string | null>(null);
   const [busyBankId, setBusyBankId] = useState<string | null>(null);
@@ -262,6 +265,12 @@ function App() {
           <Button variant="outline" onClick={() => setIsAddTransferOpen(true)}>
             Add transfer
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsImportTransactionsOpen(true)}
+          >
+            Import transactions
+          </Button>
         </div>
       </aside>
 
@@ -370,6 +379,15 @@ function App() {
           if (!bankToEdit) return;
           await handleBankUpdate(bankToEdit.id, payload);
           setBankToEdit(null);
+        }}
+      />
+
+      <ImportTransactionsDialog
+        open={isImportTransactionsOpen}
+        onOpenChange={setIsImportTransactionsOpen}
+        accounts={accounts}
+        onSuccess={async () => {
+          await Promise.allSettled([refetchTransactions(), refetchBanks()]);
         }}
       />
     </div>

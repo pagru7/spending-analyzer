@@ -19,32 +19,12 @@ public class CreateBankEndpoint : Endpoint<CreateBankRequest, BankResponse>
     {
         Post("/api/banks");
         AllowAnonymous();
-        Description(q=> q.WithTags("Banks").Produces<BankResponse>(201));
+        Description(q => q.WithTags("Banks").Produces<BankResponse>(201));
     }
 
     public override async Task HandleAsync(CreateBankRequest req, CancellationToken ct)
     {
-        var bank = new Bank
-        {
-            Id = Guid.NewGuid(),
-            Name = req.Name,
-            IsInactive = false
-        };
-
-        if (req.BankAccounts is not null)
-        {
-            foreach (var accountDto in req.BankAccounts)
-            {
-                bank.BankAccounts.Add(new BankAccount
-                {
-                    Id = Guid.NewGuid(),
-                    Name = accountDto.Name,
-                    Balance = accountDto.Balance,
-                    CreationDate = DateTime.UtcNow,
-                    IsInactive = false
-                });
-            }
-        }
+        var bank = req.ToBank();
 
         _db.Banks.Add(bank);
         await _db.SaveChangesAsync(ct);
@@ -54,18 +34,14 @@ public class CreateBankEndpoint : Endpoint<CreateBankRequest, BankResponse>
             Id = bank.Id,
             Name = bank.Name,
             IsInactive = bank.IsInactive,
-            BankAccounts = bank.BankAccounts.Select(a => new BankAccountResponse
+            BankAccounts = bank.Accounts.Select(a => new BankAccountResponse
             {
                 Id = a.Id,
                 Name = a.Name,
-                CreationDate = a.CreationDate,
-                Balance = a.Balance,
+                CreationDate = a.CreatedAt,
+                Balance = req.BankAccounts!.First(ba => ba.Name == a.Name).Balance,
                 IsInactive = a.IsInactive
-            }).ToList()
+            }).ToArray()
         };
     }
 }
-
-
-
-

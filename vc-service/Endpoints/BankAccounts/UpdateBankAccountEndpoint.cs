@@ -23,10 +23,12 @@ public class UpdateBankAccountEndpoint : Endpoint<UpdateBankAccountRequest, Bank
 
     public override async Task HandleAsync(UpdateBankAccountRequest req, CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var id = Route<int>("id");
 
         var bankAccount = await _db.BankAccounts
             .Include(ba => ba.Bank)
+            .Include(t=>t.Transactions)
+            .Where(t => t.Transactions.LastOrDefault() != null)
             .FirstOrDefaultAsync(ba => ba.Id == id, ct);
 
         if (bankAccount is null)
@@ -42,8 +44,8 @@ public class UpdateBankAccountEndpoint : Endpoint<UpdateBankAccountRequest, Bank
         {
             Id = bankAccount.Id,
             Name = bankAccount.Name,
-            CreationDate = bankAccount.CreationDate,
-            Balance = bankAccount.Balance,
+            CreationDate = bankAccount.CreatedAt,
+            Balance = bankAccount.Transactions.LastOrDefault()?.Amount ?? 0,
             IsInactive = bankAccount.IsInactive,
             BankId = bankAccount.BankId,
             BankName = bankAccount.Bank.Name

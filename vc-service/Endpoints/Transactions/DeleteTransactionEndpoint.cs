@@ -22,7 +22,7 @@ public class DeleteTransactionEndpoint : EndpointWithoutRequest
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var id = Route<int>("id");
 
         var transaction = await _db.Transactions.FirstOrDefaultAsync(t => t.Id == id, ct);
 

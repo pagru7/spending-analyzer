@@ -2,6 +2,7 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Namotion.Reflection;
 using SpendingAnalyzer.Data;
 using SpendingAnalyzer.Endpoints.Banks.Contracts;
 
@@ -32,9 +33,25 @@ public class GetAllBanksEndpoint : EndpointWithoutRequest<List<BankResponse>>
         {
             _logger.LogInformation("Fetching banks started.");
             var banks = await _db.Banks
-               .Include(b => b.BankAccounts)
-               .AsNoTracking()
-               .ToListAsync(ct);
+                .AsNoTracking()
+                .Select(bank => new
+                {
+                    bank.Id,
+                    bank.Name,
+                    bank.IsInactive,
+                    Accounts = bank.Accounts.Select(account => new
+                    {
+                        account.Id,
+                        account.Name,
+                        account.CreatedAt,
+                        account.IsInactive,
+                        LastTransaction = account.Transactions
+                            .OrderByDescending(t => t.TransactionDate)
+                            .ThenByDescending(t => t.Id)
+                            .FirstOrDefault()
+                    })
+                })
+                .ToListAsync(ct);
 
             _logger.LogInformation("Fetched {BankCount} banks from database.", banks.Count);
 
@@ -43,14 +60,14 @@ public class GetAllBanksEndpoint : EndpointWithoutRequest<List<BankResponse>>
                 Id = bank.Id,
                 Name = bank.Name,
                 IsInactive = bank.IsInactive,
-                BankAccounts = bank.BankAccounts.Select(a => new BankAccountResponse
+                BankAccounts = bank.Accounts.Select(a => new BankAccountResponse
                 {
                     Id = a.Id,
                     Name = a.Name,
-                    CreationDate = a.CreationDate,
-                    Balance = a.Balance,
+                    CreationDate = a.CreatedAt,
+                    Balance = a.LastTransaction?.Balance ?? 0,
                     IsInactive = a.IsInactive
-                }).ToList()
+                }).ToArray()
             }).ToList();
 
             Response = response;

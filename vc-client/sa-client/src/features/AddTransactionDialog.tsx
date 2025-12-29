@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -40,7 +41,9 @@ type TransactionFormValues = {
   accountId: string;
   recipient: string;
   amount: string;
-  isSpending: boolean;
+  transactionDate: string;
+  transactionFee: string;
+  isIncome: boolean;
 };
 
 const AddTransactionDialog = ({
@@ -55,7 +58,9 @@ const AddTransactionDialog = ({
       accountId: '',
       recipient: '',
       amount: '',
-      isSpending: true,
+      transactionDate: new Date().toISOString().split('T')[0],
+      transactionFee: '',
+      isIncome: false,
     },
   });
 
@@ -68,17 +73,18 @@ const AddTransactionDialog = ({
   const handleSubmit = form.handleSubmit(
     async (values: TransactionFormValues) => {
       const parsedAmount = Number.parseFloat(values.amount || '0');
-      const normalizedAmount = Number.isNaN(parsedAmount)
-        ? 0
-        : values.isSpending
-        ? -Math.abs(parsedAmount)
-        : Math.abs(parsedAmount);
+      const parsedFee = values.transactionFee.trim()
+        ? Number.parseFloat(values.transactionFee)
+        : undefined;
 
       const payload: CreateTransactionRequest = {
+        accountId: Number.parseInt(values.accountId, 10),
+        amount: parsedAmount,
         description: values.description.trim(),
-        accountId: values.accountId,
         recipient: values.recipient.trim(),
-        amount: normalizedAmount,
+        transactionDate: values.transactionDate,
+        transactionFee: parsedFee,
+        isIncome: values.isIncome,
       };
 
       try {
@@ -89,7 +95,9 @@ const AddTransactionDialog = ({
           accountId: '',
           recipient: '',
           amount: '',
-          isSpending: true,
+          transactionDate: new Date().toISOString().split('T')[0],
+          transactionFee: '',
+          isIncome: false,
         });
         onOpenChange(false);
       } catch {
@@ -120,6 +128,7 @@ const AddTransactionDialog = ({
             <Input
               id="transaction-description"
               placeholder="Grocery store"
+              autoComplete="off"
               {...form.register('description', {
                 required: 'Description is required',
               })}
@@ -161,7 +170,7 @@ const AddTransactionDialog = ({
                   </SelectTrigger>
                   <SelectContent>
                     {accounts.map((account) => (
-                      <SelectItem key={account.id} value={account.id}>
+                      <SelectItem key={account.id} value={String(account.id)}>
                         {account.bankName
                           ? `${account.bankName} - ${account.name}`
                           : account.name}
@@ -183,6 +192,7 @@ const AddTransactionDialog = ({
             <Input
               id="transaction-recipient"
               placeholder="Store or person"
+              autoComplete="off"
               {...form.register('recipient', {
                 required: 'Recipient is required',
               })}
@@ -194,48 +204,21 @@ const AddTransactionDialog = ({
             ) : null}
           </div>
 
-          <Controller<TransactionFormValues, 'isSpending'>
-            control={form.control}
-            name="isSpending"
-            render={({
-              field,
-            }: {
-              field: ControllerRenderProps<TransactionFormValues, 'isSpending'>;
-            }) => (
-              <div className="flex items-center gap-2">
-                <input
-                  id="transaction-spending"
-                  type="checkbox"
-                  className="size-4 rounded border border-input/80"
-                  checked={field.value}
-                  onChange={(event) => {
-                    const checked = event.target.checked;
-                    const currentAmount = form.getValues('amount');
-                    if (currentAmount.trim().length > 0) {
-                      const numericValue = Number.parseFloat(currentAmount);
-                      if (!Number.isNaN(numericValue)) {
-                        const normalized = Math.abs(numericValue);
-                        const nextAmount = checked ? -normalized : normalized;
-                        form.setValue('amount', nextAmount.toString(), {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        });
-                      }
-                    }
-                    field.onChange(checked);
-                  }}
-                  onBlur={field.onBlur}
-                  ref={field.ref}
-                />
-                <Label htmlFor="transaction-spending" className="m-0">
-                  Spending
-                </Label>
-                <span className="text-xs text-muted-foreground">
-                  (uncheck for income)
-                </span>
-              </div>
-            )}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="transaction-date">Transaction Date</Label>
+            <Input
+              id="transaction-date"
+              type="date"
+              {...form.register('transactionDate', {
+                required: 'Transaction date is required',
+              })}
+            />
+            {form.formState.errors.transactionDate ? (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.transactionDate.message}
+              </p>
+            ) : null}
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="transaction-amount">Amount</Label>
@@ -243,7 +226,7 @@ const AddTransactionDialog = ({
               id="transaction-amount"
               type="number"
               step="0.01"
-              placeholder="0.00"
+              placeholder="0.00 (positive for income, negative for expense)"
               {...form.register('amount', {
                 required: 'Amount is required',
                 validate: (value: string) => {
@@ -251,10 +234,7 @@ const AddTransactionDialog = ({
                   if (Number.isNaN(numericValue)) {
                     return 'Enter a valid number';
                   }
-                  return (
-                    Math.abs(numericValue) > 0 ||
-                    'Amount must be greater than zero'
-                  );
+                  return numericValue !== 0 || 'Amount must not be zero';
                 },
               })}
             />
@@ -263,6 +243,51 @@ const AddTransactionDialog = ({
                 {form.formState.errors.amount.message}
               </p>
             ) : null}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="transaction-fee">Transaction Fee (optional)</Label>
+            <Input
+              id="transaction-fee"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              {...form.register('transactionFee', {
+                validate: (value: string) => {
+                  if (!value.trim()) return true;
+                  const numericValue = Number.parseFloat(value);
+                  if (Number.isNaN(numericValue)) {
+                    return 'Enter a valid number';
+                  }
+                  return numericValue >= 0 || 'Fee must be zero or positive';
+                },
+              })}
+            />
+            {form.formState.errors.transactionFee ? (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.transactionFee.message}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Controller<TransactionFormValues, 'isIncome'>
+              control={form.control}
+              name="isIncome"
+              render={({ field }) => (
+                <Checkbox
+                  id="transaction-is-income"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+            <Label
+              htmlFor="transaction-is-income"
+              className="text-sm font-normal cursor-pointer"
+            >
+              Is Income
+            </Label>
           </div>
 
           {error ? (

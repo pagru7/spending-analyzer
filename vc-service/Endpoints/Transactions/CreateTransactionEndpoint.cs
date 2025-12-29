@@ -1,5 +1,6 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
+using SpendingAnalyzer.Common;
 using SpendingAnalyzer.Data;
 using SpendingAnalyzer.Endpoints.Transactions.Contracts;
 using SpendingAnalyzer.Entities;
@@ -33,16 +34,15 @@ public class CreateTransactionEndpoint : Endpoint<CreateTransactionRequest, Tran
             return;
         }
 
-        var transaction = new Transaction
-        {
-            Id = Guid.NewGuid(),
-            Description = req.Description,
-            AccountId = req.AccountId,
-            Recipient = req.Recipient,
-            Amount = req.Amount
-        };
+        // get last transaction to calculate balance
+        var lastTransaction = await _db.Transactions
+            .AsNoTracking()
+            .Where(t => t.AccountId == req.AccountId)
+            .OrderBy(t => t.Id)
+            .LastOrDefaultAsync(ct);
 
-        account.Balance += req.Amount;
+        var transaction = req.ToTransaction();
+        transaction.Balance = (lastTransaction?.Balance ?? 0) + transaction.Amount;
 
         _db.Transactions.Add(transaction);
         await _db.SaveChangesAsync(ct);
@@ -58,7 +58,3 @@ public class CreateTransactionEndpoint : Endpoint<CreateTransactionRequest, Tran
         };
     }
 }
-
-
-
-

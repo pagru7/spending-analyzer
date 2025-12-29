@@ -22,7 +22,7 @@ public class SetBankAccountInactiveEndpoint : EndpointWithoutRequest
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var id = Route<int>("id");
 
         var bankAccount = await _db.BankAccounts.FirstOrDefaultAsync(ba => ba.Id == id, ct);
 

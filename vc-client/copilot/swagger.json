@@ -1,5 +1,5 @@
 {
-  "x-generator": "NSwag v14.4.0.0 (NJsonSchema v11.3.2.0 (Newtonsoft.Json v13.0.0.0))",
+  "x-generator": "NSwag v14.6.3.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))",
   "openapi": "3.0.0",
   "info": {
     "title": "SpendingAnalyzer API",
@@ -11,166 +11,6 @@
     }
   ],
   "paths": {
-    "/api/transfers": {
-      "post": {
-        "tags": [
-          "Transfers",
-          "Api"
-        ],
-        "operationId": "SpendingAnalyzerEndpointsTransfersCreateTransferEndpoint",
-        "requestBody": {
-          "x-name": "CreateTransferRequest",
-          "description": "",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransfersContractsCreateTransferRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransfersContractsTransferResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Transfers",
-          "Api"
-        ],
-        "operationId": "SpendingAnalyzerEndpointsTransfersGetAllTransfersEndpoint",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransfersContractsTransferResponse"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/transfers/{id}": {
-      "delete": {
-        "tags": [
-          "Transfers",
-          "Api"
-        ],
-        "operationId": "SpendingAnalyzerEndpointsTransfersDeleteTransferEndpoint",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Transfers",
-          "Api"
-        ],
-        "operationId": "SpendingAnalyzerEndpointsTransfersGetTransferByIdEndpoint",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransfersContractsTransferResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Transfers",
-          "Api"
-        ],
-        "operationId": "SpendingAnalyzerEndpointsTransfersUpdateTransferEndpoint",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "x-name": "UpdateTransferRequest",
-          "description": "",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransfersContractsUpdateTransferRequest"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransfersContractsTransferResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
     "/api/transactions": {
       "post": {
         "tags": [
@@ -327,6 +167,40 @@
           },
           "404": {
             "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/transactions/import": {
+      "post": {
+        "tags": [
+          "Transactions",
+          "Api"
+        ],
+        "operationId": "SpendingAnalyzerEndpointsTransactionsImportTransactionsEndpoint",
+        "requestBody": {
+          "x-name": "ImportTransactionsRequest",
+          "description": "",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransactionsImportTransactionsRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransactionsImportTransactionsRequest"
+                }
+              }
+            }
           }
         }
       }
@@ -675,153 +549,99 @@
   },
   "components": {
     "schemas": {
-      "SpendingAnalyzerEndpointsTransfersContractsTransferResponse": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "description": {
-            "type": "string"
-          },
-          "sourceAccountId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "sourceAccountName": {
-            "type": "string"
-          },
-          "targetAccountId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "targetAccountName": {
-            "type": "string"
-          },
-          "value": {
-            "type": "number",
-            "format": "decimal"
-          }
-        }
-      },
-      "SpendingAnalyzerEndpointsTransfersContractsCreateTransferRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "description": {
-            "type": "string"
-          },
-          "sourceAccountId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "targetAccountId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "value": {
-            "type": "number",
-            "format": "decimal"
-          }
-        }
-      },
-      "SpendingAnalyzerEndpointsTransfersContractsUpdateTransferRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "description": {
-            "type": "string"
-          },
-          "sourceAccountId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "targetAccountId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "value": {
-            "type": "number",
-            "format": "decimal"
-          }
-        }
-      },
       "SpendingAnalyzerEndpointsTransactionsContractsTransactionResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransactionsContractsTransactionResponseBase"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "accountName": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "SpendingAnalyzerEndpointsTransactionsContractsTransactionResponseBase": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "number",
+            "format": "decimal"
           },
           "description": {
-            "type": "string"
-          },
-          "accountId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "accountName": {
             "type": "string"
           },
           "recipient": {
             "type": "string"
           },
-          "amount": {
-            "type": "number",
-            "format": "decimal"
+          "transactionDate": {
+            "type": "string",
+            "format": "date"
           }
         }
       },
       "SpendingAnalyzerEndpointsTransactionsContractsCreateTransactionRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransactionsContractsTransactionResponseBase"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "transactionFee": {
+                "type": "number",
+                "format": "double",
+                "nullable": true
+              },
+              "isIncome": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "SpendingAnalyzerEndpointsTransactionsImportTransactionsRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "description": {
-            "type": "string"
-          },
-          "accountId": {
+          "transactions": {
             "type": "string",
-            "format": "guid"
-          },
-          "recipient": {
-            "type": "string"
-          },
-          "amount": {
-            "type": "number",
-            "format": "decimal"
+            "format": "binary"
           }
         }
       },
       "SpendingAnalyzerEndpointsTransactionsContractsUpdateTransactionRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "description": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SpendingAnalyzerEndpointsTransactionsContractsTransactionResponseBase"
           },
-          "accountId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "recipient": {
-            "type": "string"
-          },
-          "amount": {
-            "type": "number",
-            "format": "decimal"
+          {
+            "type": "object",
+            "additionalProperties": false
           }
-        }
+        ]
       },
       "SpendingAnalyzerEndpointsBanksContractsBankResponse": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
           "id": {
-            "type": "string",
-            "format": "guid"
+            "type": "integer",
+            "format": "int32"
           },
           "name": {
             "type": "string"
@@ -831,6 +651,7 @@
           },
           "bankAccounts": {
             "type": "array",
+            "nullable": true,
             "items": {
               "$ref": "#/components/schemas/SpendingAnalyzerEndpointsBanksContractsBankAccountResponse"
             }
@@ -842,8 +663,8 @@
         "additionalProperties": false,
         "properties": {
           "id": {
-            "type": "string",
-            "format": "guid"
+            "type": "integer",
+            "format": "int32"
           },
           "name": {
             "type": "string"
@@ -904,8 +725,8 @@
         "additionalProperties": false,
         "properties": {
           "id": {
-            "type": "string",
-            "format": "guid"
+            "type": "integer",
+            "format": "int32"
           },
           "name": {
             "type": "string"
@@ -922,8 +743,8 @@
             "type": "boolean"
           },
           "bankId": {
-            "type": "string",
-            "format": "guid"
+            "type": "integer",
+            "format": "int32"
           },
           "bankName": {
             "type": "string"
@@ -935,8 +756,8 @@
         "additionalProperties": false,
         "properties": {
           "bankId": {
-            "type": "string",
-            "format": "guid"
+            "type": "integer",
+            "format": "int32"
           },
           "name": {
             "type": "string"

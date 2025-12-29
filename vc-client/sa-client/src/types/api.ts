@@ -30,19 +30,23 @@ export interface UpdateBankRequest {
 }
 
 export interface TransactionResponse {
-  id: string;
+  id: number;
   description: string;
-  accountId: string;
+  accountId: number;
   accountName: string;
   recipient: string;
   amount: number;
+  transactionDate: string;
 }
 
 export interface CreateTransactionRequest {
-  description: string;
-  accountId: string;
-  recipient: string;
+  accountId: number;
   amount: number;
+  description: string;
+  recipient: string;
+  transactionDate: string;
+  transactionFee?: number;
+  isIncome?: boolean;
 }
 
 export type UpdateTransactionRequest = CreateTransactionRequest;

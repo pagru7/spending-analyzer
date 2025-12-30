@@ -17,7 +17,7 @@ public class CreateBankAccountEndpoint : Endpoint<CreateBankAccountRequest, Bank
 
     public override void Configure()
     {
-        Post("/api/bankaccounts");
+        Post("/api/banks/{bankId}/accounts");
         AllowAnonymous();
         Description(q => q.WithTags("BankAccounts").Produces<BankAccountDetailResponse>(201));
     }
@@ -44,6 +44,8 @@ public class CreateBankAccountEndpoint : Endpoint<CreateBankAccountRequest, Bank
             TransactionDate = DateOnly.FromDateTime(DateTime.UtcNow),
             Recipient = "Initial Balance"
         };
+
+        bankAccount.Transactions.Add(initialTransaction);
 
         _db.BankAccounts.Add(bankAccount);
         await _db.SaveChangesAsync(ct);

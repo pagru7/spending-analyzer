@@ -55,6 +55,11 @@ public class SpendingAnalyzerDbContext : DbContext
                 .WithMany(e => e.Accounts)
                 .HasForeignKey(e => e.BankId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(e => e.Transactions)
+                .WithOne(e => e.Account)
+                .HasForeignKey(e => e.AccountId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Transaction configuration

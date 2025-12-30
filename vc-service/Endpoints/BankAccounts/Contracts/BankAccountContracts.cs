@@ -33,3 +33,9 @@ public record BankAccountDetailResponse
     public int BankId { get; set; }
     public string BankName { get; set; } = string.Empty;
 }
+
+public record DeleteAccountRequest
+{
+    public int BankId { get; set; }
+    public int AccountId { get; set; }
+}

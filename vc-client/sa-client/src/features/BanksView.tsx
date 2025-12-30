@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { currencyFormatter } from '@/lib/formatters';
-import type { BankResponse } from '@/types/api';
+import type { BankAccountResponse, BankResponse } from '@/types/api';
+import { Trash2Icon } from 'lucide-react';
 
 interface BanksViewProps {
   banks?: BankResponse[];
@@ -22,8 +23,11 @@ interface BanksViewProps {
   errorMessage: string | null;
   onEdit: (bank: BankResponse) => void;
   onMarkInactive: (bank: BankResponse) => void;
+  onAddAccount: (bank: BankResponse) => void;
+  onDeleteAccount: (account: BankAccountResponse, bankId: number) => void;
   onRefresh: () => Promise<unknown>;
   busyBankId: string | null;
+  busyAccountId: string | null;
   actionError: string | null;
 }
 
@@ -33,8 +37,11 @@ const BanksView = ({
   errorMessage,
   onEdit,
   onMarkInactive,
+  onAddAccount,
+  onDeleteAccount,
   onRefresh,
   busyBankId,
+  busyAccountId,
   actionError,
 }: BanksViewProps) => {
   if (loading) {
@@ -145,6 +152,14 @@ const BanksView = ({
                     </Button>
                     <Button
                       size="sm"
+                      variant="outline"
+                      onClick={() => onAddAccount(bank)}
+                      disabled={bank.isInactive}
+                    >
+                      Add account
+                    </Button>
+                    <Button
+                      size="sm"
                       variant="ghost"
                       className="text-destructive hover:text-destructive"
                       onClick={() => onMarkInactive(bank)}
@@ -185,9 +200,28 @@ const BanksView = ({
                               ).toLocaleDateString()}
                             </p>
                           </div>
-                          <p className="text-sm font-semibold">
-                            {currencyFormatter.format(account.balance)}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold">
+                              {currencyFormatter.format(account.balance)}
+                            </p>
+                            <Button
+                              size="icon-sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => onDeleteAccount(account, bank.id)}
+                              disabled={
+                                busyAccountId === account.id ||
+                                account.isInactive
+                              }
+                              title="Delete account"
+                            >
+                              {busyAccountId === account.id ? (
+                                <span className="text-xs">...</span>
+                              ) : (
+                                <Trash2Icon className="size-4" />
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       ))
                     )}

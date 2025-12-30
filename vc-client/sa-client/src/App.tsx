@@ -29,6 +29,7 @@ import {
   type TransferResponse,
   type UpdateBankRequest,
 } from '@/types/api';
+import AddAccountDialog from './features/AddAccountDialog';
 import AddBankDialog from './features/AddBankDialog';
 import AddTransactionDialog from './features/AddTransactionDialog';
 import AddTransferDialog from './features/AddTransferDialog';
@@ -48,8 +49,11 @@ function App() {
   const [isImportTransactionsOpen, setIsImportTransactionsOpen] =
     useState(false);
   const [bankToEdit, setBankToEdit] = useState<BankResponse | null>(null);
+  const [bankForNewAccount, setBankForNewAccount] =
+    useState<BankResponse | null>(null);
   const [bankActionError, setBankActionError] = useState<string | null>(null);
   const [busyBankId, setBusyBankId] = useState<string | null>(null);
+  const [busyAccountId, setBusyAccountId] = useState<string | null>(null);
 
   const [
     { data: banksData, loading: banksLoading, error: banksError },
@@ -75,6 +79,10 @@ function App() {
     { manual: true }
   );
   const [, executeDeleteBank] = useAxios<void>(
+    { method: 'DELETE' },
+    { manual: true }
+  );
+  const [, executeDeleteAccount] = useAxios<void>(
     { method: 'DELETE' },
     { manual: true }
   );
@@ -169,6 +177,24 @@ function App() {
     }
   };
 
+  const handleDeleteAccount = async (
+    account: BankAccountResponse,
+    bankId: number
+  ) => {
+    setBankActionError(null);
+    setBusyAccountId(account.id);
+    try {
+      await executeDeleteAccount({
+        url: `/api/banks/${bankId}/${account.id}`,
+      });
+      await refetchBanks();
+    } catch {
+      setBankActionError('Failed to delete account. Please try again.');
+    } finally {
+      setBusyAccountId(null);
+    }
+  };
+
   const renderMainContent = () => {
     if (activeView === 'banks') {
       return (
@@ -180,8 +206,13 @@ function App() {
             setBankToEdit(bank);
           }}
           onMarkInactive={(bank) => handleBankInactive(bank.id)}
+          onAddAccount={(bank) => {
+            setBankForNewAccount(bank);
+          }}
+          onDeleteAccount={handleDeleteAccount}
           onRefresh={() => refetchBanks()}
           busyBankId={busyBankId}
+          busyAccountId={busyAccountId}
           actionError={bankActionError}
         />
       );
@@ -379,6 +410,17 @@ function App() {
           if (!bankToEdit) return;
           await handleBankUpdate(bankToEdit.id, payload);
           setBankToEdit(null);
+        }}
+      />
+
+      <AddAccountDialog
+        open={bankForNewAccount !== null}
+        onOpenChange={(open) => {
+          if (!open) setBankForNewAccount(null);
+        }}
+        bank={bankForNewAccount}
+        onSuccess={async () => {
+          await refetchBanks();
         }}
       />
 

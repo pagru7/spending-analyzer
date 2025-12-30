@@ -66,10 +66,7 @@ const UpdateTransactionDialog = ({
   });
 
   const [{ loading, error }, executeUpdateTransaction] =
-    useAxios<TransactionResponse>(
-      { method: 'PUT' },
-      { manual: true }
-    );
+    useAxios<TransactionResponse>({ method: 'PUT' }, { manual: true });
 
   // Populate form when transaction changes
   useEffect(() => {
@@ -130,9 +127,7 @@ const UpdateTransactionDialog = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit transaction</DialogTitle>
-          <DialogDescription>
-            Update the transaction details.
-          </DialogDescription>
+          <DialogDescription>Update the transaction details.</DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
@@ -258,7 +253,9 @@ const UpdateTransactionDialog = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-transaction-fee">Transaction Fee (optional)</Label>
+            <Label htmlFor="edit-transaction-fee">
+              Transaction Fee (optional)
+            </Label>
             <Input
               id="edit-transaction-fee"
               type="number"

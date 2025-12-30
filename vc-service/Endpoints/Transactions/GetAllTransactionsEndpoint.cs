@@ -32,9 +32,10 @@ public class GetAllTransactionsEndpoint : EndpointWithoutRequest<List<Transactio
             _logger.LogInformation("Fetching all transactions.");
             var transactions = await _db.Transactions
                 .Include(t => t.Account)
-                .ToListAsync(ct);
+                .OrderByDescending(t=>t.Id)
+                .ToArrayAsync(ct);
             
-            _logger.LogInformation("Fetched {TransactionCount} transactions from database.", transactions.Count);
+            _logger.LogInformation("Fetched {TransactionCount} transactions from database.", transactions.Length);
 
             var response = transactions.Select(t => new TransactionResponse
             {
@@ -43,7 +44,8 @@ public class GetAllTransactionsEndpoint : EndpointWithoutRequest<List<Transactio
                 AccountId = t.AccountId,
                 AccountName = t.Account.Name,
                 Recipient = t.Recipient,
-                Amount = t.Amount
+                Amount = t.Amount,
+                TransactionDate = t.TransactionDate,
             }).ToList();
 
             Response = response;

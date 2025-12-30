@@ -25,17 +25,9 @@ public class UpdateTransactionEndpoint : Endpoint<UpdateTransactionRequest, Tran
     {
         var id = Route<int>("id");
 
-        var transaction = await _db.Transactions
-            .Include(t => t.Account)
-            .FirstOrDefaultAsync(t => t.Id == id, ct);
-
-        if (transaction is null)
-        {
-            HttpContext.Response.StatusCode = 404;
-            return;
-        }
-
-        var account = await _db.BankAccounts.FirstOrDefaultAsync(a => a.Id == req.AccountId, ct);
+        var account = await _db.BankAccounts
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == req.AccountId, ct);
 
         if (account is null)
         {
@@ -44,29 +36,65 @@ public class UpdateTransactionEndpoint : Endpoint<UpdateTransactionRequest, Tran
             return;
         }
 
-        transaction.Description = req.Description;
-        transaction.AccountId = req.AccountId;
-        transaction.Recipient = req.Recipient;
-
-        if (transaction.Amount != req.Amount)
+        using var transactionScope = await _db.Database.BeginTransactionAsync(ct);
+        try
         {
-            throw new InvalidOperationException("Transaction amount cannot be changed.");
+            var transaction = await _db.Transactions
+                .Include(t => t.Account)
+                .FirstOrDefaultAsync(t => t.Id == id, ct);
+
+            if (transaction is null)
+            {
+                HttpContext.Response.StatusCode = 404;
+                return;
+            }
+
+            transaction.Description = req.Description;
+            transaction.AccountId = req.AccountId;
+            transaction.Recipient = req.Recipient;
+            var newAmount = req.IsIncome ? Math.Abs(req.Amount) : -Math.Abs(req.Amount);
+
+            if (transaction.Amount != newAmount)
+            {
+                var previestTransaction = await _db.Transactions
+                    .Where(t => t.AccountId == transaction.AccountId && t.Id < transaction.Id)
+                    .OrderByDescending(t => t.Id)
+                    .FirstAsync(ct);
+
+                transaction.Amount = newAmount;
+                transaction.Balance = previestTransaction.Balance + newAmount;
+
+                var newestTransactions = await _db.Transactions
+                    .Where(t => t.AccountId == transaction.AccountId && t.Id > transaction.Id)
+                    .OrderBy(t => t.Id)
+                    .ToArrayAsync(ct);
+
+                var lastBalance = transaction.Balance;
+
+                foreach (var nt in newestTransactions)
+                {
+                    nt.Balance = lastBalance + nt.Amount;
+                    lastBalance = nt.Balance;
+                }
+            }
+
+            await _db.SaveChangesAsync(ct);
+            await transactionScope.CommitAsync(ct);
+
+            Response = new TransactionResponse
+            {
+                Id = transaction.Id,
+                Description = transaction.Description,
+                AccountId = transaction.AccountId,
+                AccountName = account.Name,
+                Recipient = transaction.Recipient,
+                Amount = transaction.Amount
+            };
         }
-
-        await _db.SaveChangesAsync(ct);
-
-        Response = new TransactionResponse
+        catch
         {
-            Id = transaction.Id,
-            Description = transaction.Description,
-            AccountId = transaction.AccountId,
-            AccountName = account.Name,
-            Recipient = transaction.Recipient,
-            Amount = transaction.Amount
-        };
+            await transactionScope.RollbackAsync(ct);
+            throw;
+        }
     }
 }
-
-
-
-

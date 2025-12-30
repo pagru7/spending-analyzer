@@ -7,6 +7,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { currencyFormatter } from '@/lib/formatters';
 import type { TransactionResponse } from '@/types/api';
 import { PencilIcon } from 'lucide-react';
@@ -48,47 +56,49 @@ const TransactionsView = ({
             No transactions recorded yet.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] border-separate border-spacing-y-2 text-sm">
-              <thead className="text-left text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2 font-medium">Description</th>
-                  <th className="px-3 py-2 font-medium">Account</th>
-                  <th className="px-3 py-2 font-medium">Recipient</th>
-                  <th className="px-3 py-2 font-medium text-right">Amount</th>
-                  <th className="px-3 py-2 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((transaction) => (
-                  <tr key={transaction.id} className="rounded-md bg-muted/20">
-                    <td className="px-3 py-2 text-sm font-medium">
-                      {transaction.description}
-                    </td>
-                    <td className="px-3 py-2 text-sm">
-                      {transaction.accountName}
-                    </td>
-                    <td className="px-3 py-2 text-sm">
-                      {transaction.recipient}
-                    </td>
-                    <td className="px-3 py-2 text-sm text-right font-semibold">
-                      {currencyFormatter.format(transaction.amount)}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        onClick={() => onEdit(transaction)}
-                        title="Edit transaction"
-                      >
-                        <PencilIcon className="size-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Account</TableHead>
+                <TableHead>Recipient</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {transactions.map((transaction) => (
+                <TableRow key={transaction.id}>
+                  <TableCell className="font-medium">
+                    #{transaction.id}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(transaction.transactionDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>{transaction.description}</TableCell>
+                  <TableCell>
+                    {transaction.accountName}
+                  </TableCell>
+                  <TableCell>{transaction.recipient}</TableCell>
+                  <TableCell className="text-right font-semibold">
+                    {currencyFormatter.format(transaction.amount)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      onClick={() => onEdit(transaction)}
+                      title="Edit transaction"
+                    >
+                      <PencilIcon className="size-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </CardContent>
     </Card>

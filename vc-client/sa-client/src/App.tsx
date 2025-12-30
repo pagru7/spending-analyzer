@@ -38,6 +38,7 @@ import ImportTransactionsDialog from './features/ImportTransactionsDialog';
 import TransactionsView from './features/TransactionsView';
 import TransfersView from './features/TransfersView';
 import UpdateBankDialog from './features/UpdateBankDialog';
+import UpdateTransactionDialog from './features/UpdateTransactionDialog';
 
 type ViewKey = 'banks' | 'transactions' | 'transfers';
 
@@ -51,6 +52,7 @@ function App() {
   const [bankToEdit, setBankToEdit] = useState<BankResponse | null>(null);
   const [bankForNewAccount, setBankForNewAccount] =
     useState<BankResponse | null>(null);
+  const [transactionToEdit, setTransactionToEdit] = useState<TransactionResponse | null>(null);
   const [bankActionError, setBankActionError] = useState<string | null>(null);
   const [busyBankId, setBusyBankId] = useState<string | null>(null);
   const [busyAccountId, setBusyAccountId] = useState<string | null>(null);
@@ -226,6 +228,9 @@ function App() {
           errorMessage={
             transactionsError ? 'Unable to load transactions.' : null
           }
+          onEdit={(transaction) => {
+            setTransactionToEdit(transaction);
+          }}
         />
       );
     }
@@ -421,6 +426,15 @@ function App() {
         bank={bankForNewAccount}
         onSuccess={async () => {
           await refetchBanks();
+        }}
+      />
+
+      <UpdateTransactionDialog
+        transaction={transactionToEdit}
+        accounts={accounts}
+        onClose={() => setTransactionToEdit(null)}
+        onSuccess={async () => {
+          await Promise.allSettled([refetchTransactions(), refetchBanks()]);
         }}
       />
 

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -8,17 +9,20 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { currencyFormatter } from '@/lib/formatters';
 import type { TransactionResponse } from '@/types/api';
+import { PencilIcon } from 'lucide-react';
 
 interface TransactionsViewProps {
   transactions?: TransactionResponse[];
   loading: boolean;
   errorMessage: string | null;
+  onEdit: (transaction: TransactionResponse) => void;
 }
 
 const TransactionsView = ({
   transactions,
   loading,
   errorMessage,
+  onEdit,
 }: TransactionsViewProps) => {
   return (
     <Card>
@@ -52,6 +56,7 @@ const TransactionsView = ({
                   <th className="px-3 py-2 font-medium">Account</th>
                   <th className="px-3 py-2 font-medium">Recipient</th>
                   <th className="px-3 py-2 font-medium text-right">Amount</th>
+                  <th className="px-3 py-2 font-medium text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -68,6 +73,16 @@ const TransactionsView = ({
                     </td>
                     <td className="px-3 py-2 text-sm text-right font-semibold">
                       {currencyFormatter.format(transaction.amount)}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        onClick={() => onEdit(transaction)}
+                        title="Edit transaction"
+                      >
+                        <PencilIcon className="size-4" />
+                      </Button>
                     </td>
                   </tr>
                 ))}

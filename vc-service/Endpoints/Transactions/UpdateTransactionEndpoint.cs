@@ -47,7 +47,11 @@ public class UpdateTransactionEndpoint : Endpoint<UpdateTransactionRequest, Tran
         transaction.Description = req.Description;
         transaction.AccountId = req.AccountId;
         transaction.Recipient = req.Recipient;
-        transaction.Amount = req.Amount;
+
+        if (transaction.Amount != req.Amount)
+        {
+            throw new InvalidOperationException("Transaction amount cannot be changed.");
+        }
 
         await _db.SaveChangesAsync(ct);
 

@@ -16,7 +16,7 @@ public class GetBankByIdEndpoint : EndpointWithoutRequest<BankResponse>
 
     public override void Configure()
     {
-        Get("/api/banks/{id}");
+        Get(ApiRoutes.BankById);
         AllowAnonymous();
         Description(q => q.WithTags("Banks").Produces<BankResponse>(200).Produces(404));
     }
@@ -42,7 +42,7 @@ public class GetBankByIdEndpoint : EndpointWithoutRequest<BankResponse>
             Id = bank.Id,
             Name = bank.Name,
             IsInactive = bank.IsInactive,
-            BankAccounts = bank.Accounts.Select(a => new BankAccountResponse
+            Accounts = bank.Accounts.Select(a => new BankAccountResponse
             {
                 Id = a.Id,
                 Name = a.Name,

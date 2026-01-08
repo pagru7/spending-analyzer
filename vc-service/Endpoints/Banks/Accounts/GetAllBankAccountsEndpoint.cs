@@ -1,36 +1,36 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using SpendingAnalyzer.Data;
-using SpendingAnalyzer.Endpoints.BankAccounts.Contracts;
+using SpendingAnalyzer.Endpoints.Banks.Accounts.Contracts;
 
-namespace SpendingAnalyzer.Endpoints.BankAccounts;
+namespace SpendingAnalyzer.Endpoints.Banks.Accounts;
 
-public class GetAllBankAccountsEndpoint
+public class GetAllAccountsEndpoint
     : EndpointWithoutRequest<BankAccountDetailResponse[]>
 {
     private readonly SpendingAnalyzerDbContext _db;
 
-    public GetAllBankAccountsEndpoint(SpendingAnalyzerDbContext db)
+    public GetAllAccountsEndpoint(SpendingAnalyzerDbContext db)
     {
         _db = db;
     }
 
     public override void Configure()
     {
-        Get("/api/bankaccounts");
+        Get(ApiRoutes.Accounts);
         AllowAnonymous();
-        Description(q => q.WithTags("BankAccounts")
+        Description(q => q.WithTags("Accounts")
             .Produces<BankAccountDetailResponse[]>(200));
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var bankAccounts = await _db.BankAccounts
+        var Accounts = await _db.Accounts
             .Include(ba => ba.Bank)
             .Include(t => t.Transactions.LastOrDefault())
             .ToListAsync(ct);
 
-        Response = bankAccounts.Select(ba => new BankAccountDetailResponse
+        Response = Accounts.Select(ba => new BankAccountDetailResponse
         {
             Id = ba.Id,
             Name = ba.Name,

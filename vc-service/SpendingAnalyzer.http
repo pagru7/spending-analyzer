@@ -14,7 +14,7 @@ Content-Type: application/json
 
 {
   "name": "Chase Bank",
-  "bankAccounts": [
+  "Accounts": [
     {
       "name": "Checking Account",
       "balance": 5000.00
@@ -46,7 +46,7 @@ DELETE {{httpUrl}}/api/banks/{bankId}
 ### Bank Accounts
 
 ### Create Bank Account
-POST {{httpUrl}}/api/bankaccounts
+POST {{httpUrl}}/api/Accounts
 Content-Type: application/json
 
 {
@@ -56,13 +56,13 @@ Content-Type: application/json
 }
 
 ### Get All Bank Accounts
-GET {{httpUrl}}/api/bankaccounts
+GET {{httpUrl}}/api/Accounts
 
 ### Get Bank Account By Id
-GET {{httpUrl}}/api/bankaccounts/{accountId}
+GET {{httpUrl}}/api/Accounts/{accountId}
 
 ### Update Bank Account
-PUT {{httpUrl}}/api/bankaccounts/{accountId}
+PUT {{httpUrl}}/api/Accounts/{accountId}
 Content-Type: application/json
 
 {
@@ -70,7 +70,7 @@ Content-Type: application/json
 }
 
 ### Set Bank Account Inactive
-DELETE {{httpUrl}}/api/bankaccounts/{accountId}
+DELETE {{httpUrl}}/api/Accounts/{accountId}
 
 ### Transactions
 

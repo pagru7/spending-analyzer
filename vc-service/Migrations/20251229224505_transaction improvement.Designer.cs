@@ -53,7 +53,7 @@ namespace SpendingAnalyzer.Migrations
 
                     b.HasIndex("BankId");
 
-                    b.ToTable("BankAccounts");
+                    b.ToTable("Accounts");
                 });
 
             modelBuilder.Entity("SpendingAnalyzer.Entities.Bank", b =>

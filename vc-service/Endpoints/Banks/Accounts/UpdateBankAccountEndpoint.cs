@@ -1,9 +1,9 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using SpendingAnalyzer.Data;
-using SpendingAnalyzer.Endpoints.BankAccounts.Contracts;
+using SpendingAnalyzer.Endpoints.Banks.Accounts.Contracts;
 
-namespace SpendingAnalyzer.Endpoints.BankAccounts;
+namespace SpendingAnalyzer.Endpoints.Banks.Accounts;
 
 public class UpdateBankAccountEndpoint : Endpoint<UpdateBankAccountRequest, BankAccountDetailResponse>
 {
@@ -16,16 +16,16 @@ public class UpdateBankAccountEndpoint : Endpoint<UpdateBankAccountRequest, Bank
 
     public override void Configure()
     {
-        Put("/api/bankaccounts/{id}");
+        Put(ApiRoutes.BankAccountById);
         AllowAnonymous();
-        Description(q => q.WithTags("BankAccounts").Produces<BankAccountDetailResponse>(200).Produces(404));
+        Description(q => q.WithTags("Accounts").Produces<BankAccountDetailResponse>(200).Produces(404));
     }
 
     public override async Task HandleAsync(UpdateBankAccountRequest req, CancellationToken ct)
     {
         var id = Route<int>("id");
 
-        var bankAccount = await _db.BankAccounts
+        var bankAccount = await _db.Accounts
             .Include(ba => ba.Bank)
             .Include(t=>t.Transactions)
             .Where(t => t.Transactions.LastOrDefault() != null)

@@ -21,7 +21,7 @@ interface AddBankDialogProps {
 
 type BankFormValues = {
   name: string;
-  bankAccounts: { name: string; balance: string }[];
+  accounts: { name: string; balance: string }[];
 };
 
 const AddBankDialog = ({
@@ -32,17 +32,17 @@ const AddBankDialog = ({
   const form = useForm<BankFormValues>({
     defaultValues: {
       name: '',
-      bankAccounts: [{ name: '', balance: '' }],
+      accounts: [{ name: '', balance: '' }],
     },
   });
 
   const { fields, append, remove } = useFieldArray<
     BankFormValues,
-    'bankAccounts',
+    'accounts',
     'id'
   >({
     control: form.control,
-    name: 'bankAccounts',
+    name: 'accounts',
   });
   type BankAccountField = (typeof fields)[number];
 
@@ -54,7 +54,7 @@ const AddBankDialog = ({
   const handleSubmit = form.handleSubmit(async (values: BankFormValues) => {
     const payload: CreateBankRequest = {
       name: values.name.trim(),
-      bankAccounts: values.bankAccounts
+      accounts: values.accounts
         .map((account): { name: string; balance: number } => ({
           name: account.name.trim(),
           balance: Number.parseFloat(account.balance || '0'),
@@ -65,14 +65,14 @@ const AddBankDialog = ({
         ),
     };
 
-    if (!payload.bankAccounts || payload.bankAccounts.length === 0) {
-      payload.bankAccounts = null;
+    if (!payload.accounts || payload.accounts.length === 0) {
+      payload.accounts = null;
     }
 
     try {
       await executeCreateBank({ data: payload });
       await onSuccess();
-      form.reset({ name: '', bankAccounts: [{ name: '', balance: '' }] });
+      form.reset({ name: '', accounts: [{ name: '', balance: '' }] });
       onOpenChange(false);
     } catch {
       // axios-hooks surfaces error state for UI feedback
@@ -140,19 +140,19 @@ const AddBankDialog = ({
                         id={`account-name-${index}`}
                         placeholder="Checking"
                         autoComplete="off"
-                        {...form.register(`bankAccounts.${index}.name`, {
+                        {...form.register(`accounts.${index}.name`, {
                           validate: (value: string) =>
                             value.trim().length > 0 ||
-                            form.watch(`bankAccounts.${index}.balance`).trim()
+                            form.watch(`accounts.${index}.balance`).trim()
                               .length === 0
                               ? true
                               : 'Name is required when specifying a balance',
                         })}
                       />
-                      {form.formState.errors.bankAccounts?.[index]?.name ? (
+                      {form.formState.errors.accounts?.[index]?.name ? (
                         <p className="text-xs text-destructive">
                           {
-                            form.formState.errors.bankAccounts[index]?.name
+                            form.formState.errors.accounts[index]?.name
                               ?.message as string
                           }
                         </p>
@@ -178,17 +178,17 @@ const AddBankDialog = ({
                       step="0.01"
                       placeholder="0.00"
                       autoComplete="off"
-                      {...form.register(`bankAccounts.${index}.balance`, {
+                      {...form.register(`accounts.${index}.balance`, {
                         validate: (value: string) =>
                           value.trim().length === 0 ||
                           !Number.isNaN(Number.parseFloat(value)) ||
                           'Enter a valid number',
                       })}
                     />
-                    {form.formState.errors.bankAccounts?.[index]?.balance ? (
+                    {form.formState.errors.accounts?.[index]?.balance ? (
                       <p className="text-xs text-destructive">
                         {
-                          form.formState.errors.bankAccounts[index]?.balance
+                          form.formState.errors.accounts[index]?.balance
                             ?.message as string
                         }
                       </p>

@@ -12,7 +12,7 @@ export interface BankResponse {
   id: string;
   name: string;
   isInactive: boolean;
-  bankAccounts: BankAccountResponse[];
+  accounts: BankAccountResponse[];
 }
 
 export interface CreateBankAccountDto {
@@ -22,7 +22,7 @@ export interface CreateBankAccountDto {
 
 export interface CreateBankRequest {
   name: string;
-  bankAccounts?: CreateBankAccountDto[] | null;
+  accounts?: CreateBankAccountDto[] | null;
 }
 
 export interface UpdateBankRequest {

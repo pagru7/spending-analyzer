@@ -17,7 +17,7 @@ public class CreateBankEndpoint : Endpoint<CreateBankRequest, BankResponse>
 
     public override void Configure()
     {
-        Post("/api/banks");
+        Post(ApiRoutes.Banks);
         AllowAnonymous();
         Description(q => q.WithTags("Banks").Produces<BankResponse>(201));
     }
@@ -34,12 +34,12 @@ public class CreateBankEndpoint : Endpoint<CreateBankRequest, BankResponse>
             Id = bank.Id,
             Name = bank.Name,
             IsInactive = bank.IsInactive,
-            BankAccounts = bank.Accounts.Select(a => new BankAccountResponse
+            Accounts = bank.Accounts.Select(a => new BankAccountResponse
             {
                 Id = a.Id,
                 Name = a.Name,
                 CreationDate = a.CreatedAt,
-                Balance = req.BankAccounts!.First(ba => ba.Name == a.Name).Balance,
+                Balance = req.Accounts!.First(ba => ba.Name == a.Name).Balance,
                 IsInactive = a.IsInactive
             }).ToArray()
         };

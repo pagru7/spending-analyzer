@@ -1,25 +1,25 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using SpendingAnalyzer.Data;
-using SpendingAnalyzer.Endpoints.BankAccounts.Contracts;
+using SpendingAnalyzer.Endpoints.Banks.Accounts.Contracts;
 using SpendingAnalyzer.Entities;
 
-namespace SpendingAnalyzer.Endpoints.BankAccounts;
+namespace SpendingAnalyzer.Endpoints.Banks.Accounts;
 
-public class CreateBankAccountEndpoint : Endpoint<CreateBankAccountRequest, BankAccountDetailResponse>
+public class CreateAccountEndpoint : Endpoint<CreateBankAccountRequest, BankAccountDetailResponse>
 {
     private readonly SpendingAnalyzerDbContext _db;
 
-    public CreateBankAccountEndpoint(SpendingAnalyzerDbContext db)
+    public CreateAccountEndpoint(SpendingAnalyzerDbContext db)
     {
         _db = db;
     }
 
     public override void Configure()
     {
-        Post("/api/banks/{bankId}/accounts");
+        Post(ApiRoutes.BankAccounts);
         AllowAnonymous();
-        Description(q => q.WithTags("BankAccounts").Produces<BankAccountDetailResponse>(201));
+        Description(q => q.WithTags("Accounts").Produces<BankAccountDetailResponse>(201));
     }
 
     public override async Task HandleAsync(CreateBankAccountRequest req, CancellationToken ct)
@@ -47,7 +47,7 @@ public class CreateBankAccountEndpoint : Endpoint<CreateBankAccountRequest, Bank
 
         bankAccount.Transactions.Add(initialTransaction);
 
-        _db.BankAccounts.Add(bankAccount);
+        _db.Accounts.Add(bankAccount);
         await _db.SaveChangesAsync(ct);
 
         Response = new BankAccountDetailResponse

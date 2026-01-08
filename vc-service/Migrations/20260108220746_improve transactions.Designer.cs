@@ -12,8 +12,8 @@ using SpendingAnalyzer.Data;
 namespace SpendingAnalyzer.Migrations
 {
     [DbContext(typeof(SpendingAnalyzerDbContext))]
-    [Migration("20251230124311_handle account removal")]
-    partial class handleaccountremoval
+    [Migration("20260108220746_improve transactions")]
+    partial class improvetransactions
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

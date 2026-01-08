@@ -27,7 +27,7 @@ namespace SpendingAnalyzer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BankAccounts",
+                name: "Accounts",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -40,9 +40,9 @@ namespace SpendingAnalyzer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BankAccounts", x => x.Id);
+                    table.PrimaryKey("PK_Accounts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BankAccounts_Banks_BankId",
+                        name: "FK_Accounts_Banks_BankId",
                         column: x => x.BankId,
                         principalTable: "Banks",
                         principalColumn: "Id",
@@ -73,9 +73,9 @@ namespace SpendingAnalyzer.Migrations
                 {
                     table.PrimaryKey("PK_ImportedTransactions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ImportedTransactions_BankAccounts_AccountId",
+                        name: "FK_ImportedTransactions_Accounts_AccountId",
                         column: x => x.AccountId,
-                        principalTable: "BankAccounts",
+                        principalTable: "Accounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -99,9 +99,9 @@ namespace SpendingAnalyzer.Migrations
                 {
                     table.PrimaryKey("PK_Transactions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Transactions_BankAccounts_AccountId",
+                        name: "FK_Transactions_Accounts_AccountId",
                         column: x => x.AccountId,
-                        principalTable: "BankAccounts",
+                        principalTable: "Accounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -113,8 +113,8 @@ namespace SpendingAnalyzer.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_BankAccounts_BankId",
-                table: "BankAccounts",
+                name: "IX_Accounts_BankId",
+                table: "Accounts",
                 column: "BankId");
 
             migrationBuilder.CreateIndex(
@@ -144,7 +144,7 @@ namespace SpendingAnalyzer.Migrations
                 name: "ImportedTransactions");
 
             migrationBuilder.DropTable(
-                name: "BankAccounts");
+                name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "Banks");

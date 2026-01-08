@@ -7,7 +7,7 @@ using SpendingAnalyzer.Entities;
 using System.Globalization;
 using System.Text;
 
-namespace SpendingAnalyzer.Endpoints.Transactions
+namespace SpendingAnalyzer.Endpoints.Banks.Accounts
 {
     internal class ImportTransactionsEndpoint : Endpoint<ImportTransactionsRequest, ImportTransactionsResponse>
     {
@@ -64,7 +64,7 @@ namespace SpendingAnalyzer.Endpoints.Transactions
                     HeaderMode = HeaderMode.HeaderPresent,
                 }).ToArray();
 
-                var bankAccountIdQuery = _db.BankAccounts
+                var bankAccountIdQuery = _db.Accounts
                     .Include(ba => ba.Bank)
                     .Where(b => b.Bank.Name.ToLower().Contains("inteligo") && b.Name.ToLower().Contains("osobiste"));
 

@@ -52,7 +52,8 @@ function App() {
   const [bankToEdit, setBankToEdit] = useState<BankResponse | null>(null);
   const [bankForNewAccount, setBankForNewAccount] =
     useState<BankResponse | null>(null);
-  const [transactionToEdit, setTransactionToEdit] = useState<TransactionResponse | null>(null);
+  const [transactionToEdit, setTransactionToEdit] =
+    useState<TransactionResponse | null>(null);
   const [bankActionError, setBankActionError] = useState<string | null>(null);
   const [busyBankId, setBusyBankId] = useState<string | null>(null);
   const [busyAccountId, setBusyAccountId] = useState<string | null>(null);
@@ -92,7 +93,7 @@ function App() {
   const accounts: BankAccountResponse[] = useMemo(() => {
     return (banksData ?? [])
       .flatMap((bank: BankResponse) =>
-        bank.bankAccounts.map((account: BankAccountResponse) => ({
+        bank.accounts.map((account: BankAccountResponse) => ({
           ...account,
           bankId: bank.id,
           bankName: bank.name,

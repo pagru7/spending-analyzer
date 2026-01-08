@@ -133,7 +133,7 @@ const BanksView = ({
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {
-                      (bank.bankAccounts || []).filter((acc) => !acc.isInactive)
+                      (bank.accounts || []).filter((acc) => !acc.isInactive)
                         .length
                     }{' '}
                     active accounts
@@ -174,12 +174,12 @@ const BanksView = ({
                   </div>
 
                   <div className="space-y-3">
-                    {(bank.bankAccounts ?? []).length === 0 ? (
+                    {(bank.accounts ?? []).length === 0 ? (
                       <p className="text-sm text-muted-foreground">
                         No accounts registered under this bank yet.
                       </p>
                     ) : (
-                      (bank.bankAccounts ?? []).map((account) => (
+                      (bank.accounts ?? []).map((account) => (
                         <div
                           key={account.id}
                           className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/10 px-3 py-2"

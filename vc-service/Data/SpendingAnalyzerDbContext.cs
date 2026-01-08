@@ -11,7 +11,7 @@ public class SpendingAnalyzerDbContext : DbContext
     }
 
     public DbSet<Bank> Banks => Set<Bank>();
-    public DbSet<Account> BankAccounts => Set<Account>();
+    public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<ImportedTransaction> ImportedTransactions => Set<ImportedTransaction>();
 

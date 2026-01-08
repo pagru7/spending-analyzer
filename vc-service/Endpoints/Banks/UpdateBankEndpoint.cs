@@ -16,7 +16,7 @@ public class UpdateBankEndpoint : Endpoint<UpdateBankRequest, BankResponse>
 
     public override void Configure()
     {
-        Put("/api/banks/{id}");
+        Put(ApiRoutes.BankById);
         AllowAnonymous();
         Description(q => q.WithTags("Banks").Produces<BankResponse>(200).Produces(404));
     }
@@ -43,7 +43,7 @@ public class UpdateBankEndpoint : Endpoint<UpdateBankRequest, BankResponse>
             Id = bank.Id,
             Name = bank.Name,
             IsInactive = bank.IsInactive,
-            BankAccounts = bank.Accounts.Select(a => new BankAccountResponse
+            Accounts = bank.Accounts.Select(a => new BankAccountResponse
             {
                 Id = a.Id,
                 Name = a.Name,

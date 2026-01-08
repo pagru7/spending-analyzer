@@ -15,7 +15,7 @@ public class DeleteBankEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Delete("/api/banks/{id}");
+        Delete(ApiRoutes.BankById);
         AllowAnonymous();
         Description(q => q.WithTags("Banks").Produces(204).Produces(404));
     }

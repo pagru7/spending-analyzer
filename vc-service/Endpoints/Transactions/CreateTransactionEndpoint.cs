@@ -18,14 +18,14 @@ public class CreateTransactionEndpoint : Endpoint<CreateTransactionRequest, Tran
 
     public override void Configure()
     {
-        Post("/api/transactions");
+        Post(ApiRoutes.Transactions);
         AllowAnonymous();
         Description(q => q.WithTags("Transactions").Produces<TransactionResponse>(201).Accepts<CreateTransactionRequest>("application/json"));
     }
 
     public override async Task HandleAsync(CreateTransactionRequest req, CancellationToken ct)
     {
-        var account = await _db.BankAccounts.FirstOrDefaultAsync(a => a.Id == req.AccountId, ct);
+        var account = await _db.Accounts.FirstOrDefaultAsync(a => a.Id == req.AccountId, ct);
 
         if (account is null)
         {

@@ -56,7 +56,7 @@ namespace SpendingAnalyzer.Migrations
 
                     b.HasIndex("BankId");
 
-                    b.ToTable("BankAccounts");
+                    b.ToTable("Accounts");
                 });
 
             modelBuilder.Entity("SpendingAnalyzer.Entities.Bank", b =>
@@ -193,7 +193,7 @@ namespace SpendingAnalyzer.Migrations
             modelBuilder.Entity("SpendingAnalyzer.Entities.Account", b =>
                 {
                     b.HasOne("SpendingAnalyzer.Entities.Bank", "Bank")
-                        .WithMany("BankAccounts")
+                        .WithMany("Accounts")
                         .HasForeignKey("BankId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -239,7 +239,7 @@ namespace SpendingAnalyzer.Migrations
 
             modelBuilder.Entity("SpendingAnalyzer.Entities.Bank", b =>
                 {
-                    b.Navigation("BankAccounts");
+                    b.Navigation("Accounts");
                 });
 
             modelBuilder.Entity("SpendingAnalyzer.Entities.ImportedTransaction", b =>

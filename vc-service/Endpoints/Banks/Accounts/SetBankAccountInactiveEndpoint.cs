@@ -2,7 +2,7 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using SpendingAnalyzer.Data;
 
-namespace SpendingAnalyzer.Endpoints.BankAccounts;
+namespace SpendingAnalyzer.Endpoints.Banks.Accounts;
 
 public class SetBankAccountInactiveEndpoint : EndpointWithoutRequest
 {
@@ -15,16 +15,18 @@ public class SetBankAccountInactiveEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Delete("/api/bankaccounts/{id}");
+        Delete(ApiRoutes.BankAccountByIdActive);
         AllowAnonymous();
-        Description(q => q.WithTags("BankAccounts").Produces(204).Produces(404));
+        Description(q => q.WithTags("Accounts").Produces(204).Produces(404));
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<int>("id");
+        var bankId = Route<int>("bankId");
+        var accountId = Route<int>("accountId");
 
-        var bankAccount = await _db.BankAccounts.FirstOrDefaultAsync(ba => ba.Id == id, ct);
+        var bankAccount = await _db.Accounts
+            .FirstOrDefaultAsync(ba => ba.Id == accountId && ba.BankId == bankId, ct);
 
         if (bankAccount is null)
         {

@@ -16,7 +16,7 @@ public class GetTransactionByIdEndpoint : EndpointWithoutRequest<TransactionResp
 
     public override void Configure()
     {
-        Get("/api/transactions/{id}");
+        Get(ApiRoutes.TransactionById);
         AllowAnonymous();
         Description(q => q.WithTags("Transactions").Produces<TransactionResponse>(200).Produces(404));
     }

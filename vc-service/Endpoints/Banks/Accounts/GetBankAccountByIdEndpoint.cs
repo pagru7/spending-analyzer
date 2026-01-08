@@ -1,9 +1,9 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using SpendingAnalyzer.Data;
-using SpendingAnalyzer.Endpoints.BankAccounts.Contracts;
+using SpendingAnalyzer.Endpoints.Banks.Accounts.Contracts;
 
-namespace SpendingAnalyzer.Endpoints.BankAccounts;
+namespace SpendingAnalyzer.Endpoints.Banks.Accounts;
 
 public class GetBankAccountByIdEndpoint : EndpointWithoutRequest<BankAccountDetailResponse>
 {
@@ -16,20 +16,21 @@ public class GetBankAccountByIdEndpoint : EndpointWithoutRequest<BankAccountDeta
 
     public override void Configure()
     {
-        Get("/api/bankaccounts/{id}");
+        Get(ApiRoutes.BankAccountById);
         AllowAnonymous();
-        Description(q => q.WithTags("BankAccounts").Produces<BankAccountDetailResponse>(200).Produces(404));
+        Description(q => q.WithTags("Accounts").Produces<BankAccountDetailResponse>(200).Produces(404));
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var id = Route<int>("id");
+        var bankId = Route<int>("bankId");
+        var accountId = Route<int>("accountId");
 
-        var bankAccount = await _db.BankAccounts
+        var bankAccount = await _db.Accounts
             .Include(ba => ba.Bank)
             .Include(t => t.Transactions)
                .Where(t => t.Transactions.LastOrDefault() != null)
-            .FirstOrDefaultAsync(ba => ba.Id == id, ct);
+            .FirstOrDefaultAsync(ba => ba.Id == accountId && ba.BankId == bankId, ct);
 
         if (bankAccount is null)
         {

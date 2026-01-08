@@ -13,11 +13,11 @@ namespace SpendingAnalyzer.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Balance",
-                table: "BankAccounts");
+                table: "Accounts");
 
             migrationBuilder.RenameColumn(
                 name: "CreationDate",
-                table: "BankAccounts",
+                table: "Accounts",
                 newName: "CreatedAt");
 
             migrationBuilder.AddColumn<DateTime>(
@@ -48,12 +48,12 @@ namespace SpendingAnalyzer.Migrations
 
             migrationBuilder.RenameColumn(
                 name: "CreatedAt",
-                table: "BankAccounts",
+                table: "Accounts",
                 newName: "CreationDate");
 
             migrationBuilder.AddColumn<decimal>(
                 name: "Balance",
-                table: "BankAccounts",
+                table: "Accounts",
                 type: "numeric(18,2)",
                 nullable: false,
                 defaultValue: 0m);

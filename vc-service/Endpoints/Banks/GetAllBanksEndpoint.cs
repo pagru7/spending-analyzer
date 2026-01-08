@@ -22,7 +22,7 @@ public class GetAllBanksEndpoint : EndpointWithoutRequest<List<BankResponse>>
 
     public override void Configure()
     {
-        Get("/api/banks");
+        Get(ApiRoutes.Banks);
         AllowAnonymous();
         Description(q => q.WithTags("Banks").Produces<List<BankResponse>>(200));
     }
@@ -60,7 +60,7 @@ public class GetAllBanksEndpoint : EndpointWithoutRequest<List<BankResponse>>
                 Id = bank.Id,
                 Name = bank.Name,
                 IsInactive = bank.IsInactive,
-                BankAccounts = bank.Accounts.Select(a => new BankAccountResponse
+                Accounts = bank.Accounts.Select(a => new BankAccountResponse
                 {
                     Id = a.Id,
                     Name = a.Name,

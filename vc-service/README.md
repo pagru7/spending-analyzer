@@ -77,15 +77,15 @@ The API will be available at:
 | `PUT`    | `/api/banks/{id}` | Update bank name                                |
 | `DELETE` | `/api/banks/{id}` | Mark bank as inactive (soft delete)             |
 
-### Bank Accounts (`/api/bankaccounts`)
+### Bank Accounts (`/api/Accounts`)
 
 | Method   | Endpoint                 | Description                   |
 | -------- | ------------------------ | ----------------------------- |
-| `POST`   | `/api/bankaccounts`      | Create a new bank account     |
-| `GET`    | `/api/bankaccounts`      | Get all bank accounts         |
-| `GET`    | `/api/bankaccounts/{id}` | Get bank account by ID        |
-| `PUT`    | `/api/bankaccounts/{id}` | Update bank account name      |
-| `DELETE` | `/api/bankaccounts/{id}` | Mark bank account as inactive |
+| `POST`   | `/api/Accounts`      | Create a new bank account     |
+| `GET`    | `/api/Accounts`      | Get all bank accounts         |
+| `GET`    | `/api/Accounts/{id}` | Get bank account by ID        |
+| `PUT`    | `/api/Accounts/{id}` | Update bank account name      |
+| `DELETE` | `/api/Accounts/{id}` | Mark bank account as inactive |
 
 ### Transactions (`/api/transactions`)
 
@@ -123,7 +123,7 @@ Content-Type: application/json
 
 {
   "name": "Chase Bank",
-  "bankAccounts": [
+  "Accounts": [
     {
       "name": "Checking Account",
       "balance": 5000.00
@@ -169,7 +169,7 @@ SpendingAnalyzer/
 │   │   ├── GetBankByIdEndpoint.cs
 │   │   ├── UpdateBankEndpoint.cs
 │   │   └── DeleteBankEndpoint.cs
-│   ├── BankAccounts/                          # Similar structure
+│   ├── Accounts/                          # Similar structure
 │   ├── Transactions/                          # Similar structure
 │   └── Transfers/                             # Similar structure
 ├── Migrations/                                # EF Core migrations

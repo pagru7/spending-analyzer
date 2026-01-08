@@ -20,7 +20,7 @@ public class GetAllTransactionsEndpoint : EndpointWithoutRequest<List<Transactio
 
     public override void Configure()
     {
-        Get("/api/transactions");
+        Get(ApiRoutes.Transactions);
         AllowAnonymous();
         Description(q => q.WithTags("Transactions").Produces<List<TransactionResponse>>(200));
     }

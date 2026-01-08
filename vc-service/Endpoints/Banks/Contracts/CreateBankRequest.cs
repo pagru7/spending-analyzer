@@ -6,7 +6,7 @@ namespace SpendingAnalyzer.Endpoints.Banks;
 public record CreateBankRequest
 {
     public string Name { get; set; } = string.Empty;
-    public List<BankAccountDto>? BankAccounts { get; set; }
+    public List<BankAccountDto>? Accounts { get; set; }
 
     internal Bank ToBank()
     => new Bank
@@ -14,7 +14,7 @@ public record CreateBankRequest
         Name = this.Name,
         IsInactive = false,
         CreatedAt = DateTime.UtcNow,
-        Accounts = BankAccounts?.Select(a => new Account
+        Accounts = Accounts?.Select(a => new Account
         {
             Name = a.Name,
             IsInactive = false,

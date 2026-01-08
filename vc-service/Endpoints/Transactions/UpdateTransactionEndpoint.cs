@@ -16,7 +16,7 @@ public class UpdateTransactionEndpoint : Endpoint<UpdateTransactionRequest, Tran
 
     public override void Configure()
     {
-        Put("/api/transactions/{id}");
+        Put(ApiRoutes.TransactionById);
         AllowAnonymous();
         Description(q => q.WithTags("Transactions").Produces<TransactionResponse>(200).Produces(404));
     }
@@ -25,7 +25,7 @@ public class UpdateTransactionEndpoint : Endpoint<UpdateTransactionRequest, Tran
     {
         var id = Route<int>("id");
 
-        var account = await _db.BankAccounts
+        var account = await _db.Accounts
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == req.AccountId, ct);
 

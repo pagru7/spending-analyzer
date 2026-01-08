@@ -1,6 +1,6 @@
 using SpendingAnalyzer.Entities;
 
-namespace SpendingAnalyzer.Endpoints.BankAccounts.Contracts;
+namespace SpendingAnalyzer.Endpoints.Banks.Accounts.Contracts;
 
 public record CreateBankAccountRequest
 {
@@ -38,4 +38,10 @@ public record DeleteAccountRequest
 {
     public int BankId { get; set; }
     public int AccountId { get; set; }
+}
+
+public record UpdateAccountBalanceRequest
+{
+    public decimal NewBalance { get; set; }
+    public string? Description { get; set; }
 }

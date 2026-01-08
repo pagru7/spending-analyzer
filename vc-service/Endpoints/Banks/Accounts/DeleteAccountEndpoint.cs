@@ -1,9 +1,9 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using SpendingAnalyzer.Data;
-using SpendingAnalyzer.Endpoints.BankAccounts.Contracts;
+using SpendingAnalyzer.Endpoints.Banks.Accounts.Contracts;
 
-namespace SpendingAnalyzer.Endpoints.BankAccounts;
+namespace SpendingAnalyzer.Endpoints.Banks.Accounts;
 
 public class DeleteAccountEndpoint : EndpointWithoutRequest
 {
@@ -16,9 +16,9 @@ public class DeleteAccountEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Delete("/api/banks/{bankId}/{accountId}");
+        Delete(ApiRoutes.BankAccountById);
         AllowAnonymous();
-        Description(q => q.WithTags("BankAccounts").Produces<BankAccountDetailResponse>(200).Produces(404));
+        Description(q => q.WithTags("Accounts").Produces<BankAccountDetailResponse>(200).Produces(404));
     }
 
     public override async Task HandleAsync(CancellationToken ct)
@@ -26,7 +26,7 @@ public class DeleteAccountEndpoint : EndpointWithoutRequest
         var bankId = Route<int>("bankId");
         var accountId = Route<int>("accountId");
 
-        var bankAccount = await _db.BankAccounts
+        var bankAccount = await _db.Accounts
             .Include(ba => ba.Transactions)
             .FirstOrDefaultAsync(ba => ba.Id == accountId && ba.BankId == bankId, ct);
 
@@ -43,7 +43,7 @@ public class DeleteAccountEndpoint : EndpointWithoutRequest
         }
         else
         {
-            _db.BankAccounts.Remove(bankAccount);
+            _db.Accounts.Remove(bankAccount);
             await _db.SaveChangesAsync(ct);
         }
 

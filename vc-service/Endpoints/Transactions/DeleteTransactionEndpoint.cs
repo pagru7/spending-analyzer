@@ -15,7 +15,7 @@ public class DeleteTransactionEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Delete("/api/transactions/{id}");
+        Delete(ApiRoutes.TransactionById);
         AllowAnonymous();
         Description(q => q.WithTags("Transactions").Produces(204).Produces(404));
     }

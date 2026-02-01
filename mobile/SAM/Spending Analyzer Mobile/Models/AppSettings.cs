@@ -16,6 +16,4 @@ public class AppSettings
     public string AccountName { get; set; } = string.Empty;
 
     public string ApiKey { get; set; } = string.Empty;
-
-    public decimal InitialBalance { get; set; }
 }

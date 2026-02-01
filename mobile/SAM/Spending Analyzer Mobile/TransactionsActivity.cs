@@ -7,7 +7,7 @@ using Spending_Analyzer_Mobile.Services;
 
 namespace Spending_Analyzer_Mobile;
 
-[Activity(Label = "Transactions")]
+[Activity(Label = "Transactions", Exported = false)]
 public class TransactionsActivity : Activity
 {
     private ListView? _listTransactions;

@@ -3,7 +3,7 @@ using Spending_Analyzer_Mobile.Services;
 
 namespace Spending_Analyzer_Mobile;
 
-[Activity(Label = "Settings")]
+[Activity(Label = "Settings", Exported = false)]
 public class SettingsActivity : Activity
 {
     private EditText? _editHostUrl;
@@ -11,7 +11,6 @@ public class SettingsActivity : Activity
     private EditText? _editAccountId;
     private EditText? _editAccountName;
     private EditText? _editApiKey;
-    private EditText? _editInitialBalance;
     private Button? _btnSaveSettings;
 
     protected override void OnCreate(Bundle? savedInstanceState)
@@ -31,7 +30,6 @@ public class SettingsActivity : Activity
         _editAccountId = FindViewById<EditText>(Resource.Id.editAccountId);
         _editAccountName = FindViewById<EditText>(Resource.Id.editAccountName);
         _editApiKey = FindViewById<EditText>(Resource.Id.editApiKey);
-        _editInitialBalance = FindViewById<EditText>(Resource.Id.editInitialBalance);
         _btnSaveSettings = FindViewById<Button>(Resource.Id.btnSaveSettings);
     }
 
@@ -49,7 +47,6 @@ public class SettingsActivity : Activity
                     _editAccountId!.Text = settings.AccountId;
                     _editAccountName!.Text = settings.AccountName;
                     _editApiKey!.Text = settings.ApiKey;
-                    _editInitialBalance!.Text = settings.InitialBalance.ToString("F2");
                 });
             }
         }
@@ -77,20 +74,13 @@ public class SettingsActivity : Activity
                 return;
             }
 
-            if (!decimal.TryParse(_editInitialBalance!.Text, out var initialBalance))
-            {
-                Toast.MakeText(this, "Invalid initial balance", ToastLength.Short)?.Show();
-                return;
-            }
-
             var settings = new AppSettings
             {
                 HostUrl = _editHostUrl!.Text ?? string.Empty,
                 Port = port,
                 AccountId = _editAccountId!.Text ?? string.Empty,
                 AccountName = _editAccountName!.Text ?? string.Empty,
-                ApiKey = _editApiKey!.Text ?? string.Empty,
-                InitialBalance = initialBalance
+                ApiKey = _editApiKey!.Text ?? string.Empty
             };
 
             await DatabaseService.Instance.SaveSettingsAsync(settings);
@@ -103,3 +93,4 @@ public class SettingsActivity : Activity
         }
     }
 }
+

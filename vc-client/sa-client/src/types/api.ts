@@ -78,3 +78,7 @@ export interface BankAccountDetailResponse extends BankAccountResponse {
 export interface UpdateBankAccountRequest {
   name: string;
 }
+
+export interface UpdateAccountBalanceRequest {
+  newBalance: number;
+}

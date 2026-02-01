@@ -31,8 +31,10 @@ public class TransactionListAdapter : BaseAdapter<Transaction>
 
         var textRecipient = view.FindViewById<TextView>(Resource.Id.textRecipient);
         var textDescription = view.FindViewById<TextView>(Resource.Id.textDescription);
+        var textType = view.FindViewById<TextView>(Resource.Id.textType);
         var textDate = view.FindViewById<TextView>(Resource.Id.textDate);
         var textAmount = view.FindViewById<TextView>(Resource.Id.textAmount);
+        var textBalance = view.FindViewById<TextView>(Resource.Id.textBalance);
         var iconSync = view.FindViewById<ImageView>(Resource.Id.iconSync);
 
         if (textRecipient != null)
@@ -43,11 +45,30 @@ public class TransactionListAdapter : BaseAdapter<Transaction>
                 ? "No description"
                 : transaction.Description;
 
+        if (textType != null)
+            textType.Text = transaction.TransactionType;
+
         if (textDate != null)
             textDate.Text = transaction.TransactionDate.ToString("yyyy-MM-dd HH:mm");
 
         if (textAmount != null)
-            textAmount.Text = $"-${transaction.Amount:N2}";
+        {
+            var signedAmount = transaction.TransactionType switch
+            {
+                TransactionTypes.Income => transaction.Amount,
+                TransactionTypes.Transfer => 0m,
+                _ => -transaction.Amount
+            };
+            textAmount.Text = $"{signedAmount:+$0.00;-$0.00;$0.00}";
+            textAmount.SetTextColor(transaction.TransactionType == TransactionTypes.Income
+                ? Android.Graphics.Color.ParseColor("#4CAF50")
+                : transaction.TransactionType == TransactionTypes.Transfer
+                    ? Android.Graphics.Color.ParseColor("#607D8B")
+                    : Android.Graphics.Color.ParseColor("#F44336"));
+        }
+
+        if (textBalance != null)
+            textBalance.Text = $"Balance: ${transaction.Balance:N2}";
 
         if (iconSync != null)
             iconSync.Visibility = transaction.IsSynchronized

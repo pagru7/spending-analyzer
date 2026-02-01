@@ -17,7 +17,7 @@ public class UpdateAccountBalanceEndpoint : Endpoint<UpdateAccountBalanceRequest
 
     public override void Configure()
     {
-        Post(ApiRoutes.BankAccountByIdBalance);
+        Patch(ApiRoutes.BankAccountByIdBalance);
         AllowAnonymous();
         Description(q => q
             .WithTags("Accounts")
@@ -27,11 +27,12 @@ public class UpdateAccountBalanceEndpoint : Endpoint<UpdateAccountBalanceRequest
 
     public override async Task HandleAsync(UpdateAccountBalanceRequest req, CancellationToken ct)
     {
-        var id = Route<int>("id");
+        var bankId = Route<int>("bankId");
+        var accountId = Route<int>("accountId");
 
         var bankAccount = await _db.Accounts
             .Include(ba => ba.Bank)
-            .FirstOrDefaultAsync(ba => ba.Id == id, ct);
+            .FirstOrDefaultAsync(ba => ba.Id == accountId && ba.BankId == bankId, ct);
 
         if (bankAccount is null)
         {
@@ -42,11 +43,27 @@ public class UpdateAccountBalanceEndpoint : Endpoint<UpdateAccountBalanceRequest
         // Get the latest transaction to determine current balance
         var lastTransaction = await _db.Transactions
             .AsNoTracking()
-            .Where(t => t.AccountId == id)
-            .OrderByDescending(t => t.Id)
+            .Where(t => t.AccountId == accountId)
+            .OrderByDescending(t => t.CreatedAt)
             .FirstOrDefaultAsync(ct);
 
         var currentBalance = lastTransaction?.Balance ?? 0;
+
+        if(currentBalance == req.NewBalance)
+        {
+            Response = new BankAccountDetailResponse
+            {
+                Id = bankAccount.Id,
+                Name = bankAccount.Name,
+                CreationDate = bankAccount.CreatedAt,
+                Balance = currentBalance,
+                IsInactive = bankAccount.IsInactive,
+                BankId = bankAccount.BankId,
+                BankName = bankAccount.Bank.Name
+            };
+            return;
+        }
+
         var difference = req.NewBalance - currentBalance;
 
         // If no difference, just return current state
@@ -68,7 +85,7 @@ public class UpdateAccountBalanceEndpoint : Endpoint<UpdateAccountBalanceRequest
         // Create adjustment transaction
         var adjustmentTransaction = new Transaction
         {
-            AccountId = id,
+            AccountId = accountId,
             TransactionDate = DateOnly.FromDateTime(DateTime.UtcNow),
             Amount = difference,
             Balance = req.NewBalance,

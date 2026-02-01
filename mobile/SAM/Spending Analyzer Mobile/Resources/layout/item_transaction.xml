@@ -33,6 +33,15 @@
             android:ellipsize="end" />
 
         <TextView
+            android:id="@+id/textType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Type"
+            android:textSize="12sp"
+            android:textColor="#9E9E9E"
+            android:layout_marginTop="2dp" />
+
+        <TextView
             android:id="@+id/textDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -58,6 +67,15 @@
             android:textStyle="bold"
             android:textColor="#F44336" />
 
+        <TextView
+            android:id="@+id/textBalance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Balance: $0.00"
+            android:textSize="12sp"
+            android:textColor="#757575"
+            android:layout_marginTop="2dp" />
+
         <ImageView
             android:id="@+id/iconSync"
             android:layout_width="16dp"
@@ -70,3 +88,4 @@
     </LinearLayout>
 
 </LinearLayout>
+

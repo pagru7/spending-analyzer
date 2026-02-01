@@ -8,10 +8,13 @@ App will have two main features: logging expenses and send them to backend serve
     - user can devine port number for backend server
     - user can define account id and name
     - user can define api key for authentication
-    - user can enter initial balance amount
 2. Log Expense
-    - user can input expense amount, recipient, description, date and time (by default current time and date)
+    - user can input expense amount, recipient, description, date and time (by default current time and date). 
+    - Account balance is calculated and stored in each expense log (it is not part of the settings)
     - of course user can also edit previously logged expenses
+    - If user edits an expense that was already synchronized with backend server, the edited expense should be marked as unsynchronized
+    - updated expense log should also update the account balance for all subsequent expenses
+    - expense log should have type (dropdown) - spending, income, transfer
 3. View transactions
     - user can view list of all logged expenses
     - user can filter expenses by date range, recipient, amount range

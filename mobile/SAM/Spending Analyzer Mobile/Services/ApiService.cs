@@ -1,6 +1,7 @@
+using Spending_Analyzer_Mobile.Models;
 using System.Text;
 using System.Text.Json;
-using Spending_Analyzer_Mobile.Models;
+using System.Text.Json.Serialization;
 
 namespace Spending_Analyzer_Mobile.Services;
 
@@ -73,15 +74,14 @@ public class ApiService
                     Amount = t.Amount,
                     Recipient = t.Recipient,
                     Description = t.Description,
-                    TransactionDate = t.TransactionDate
+                    TransactionDate = t.TransactionDate,
+                    TransactionType = t.TransactionType,
+                    Balance = t.Balance
                 }).ToList(),
                 ExportDate = DateTime.Now
             };
 
-            var json = JsonSerializer.Serialize(exportData, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            var json = JsonSerializer.Serialize(exportData, ApiSerializerContext.Default.ExportData);
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{baseUrl}/api/transactions/sync", content);
@@ -89,10 +89,7 @@ public class ApiService
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var syncResponse = JsonSerializer.Deserialize<SyncResponse>(responseContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                var syncResponse = JsonSerializer.Deserialize(responseContent, ApiSerializerContext.Default.SyncResponse);
 
                 if (syncResponse != null)
                 {
@@ -110,6 +107,8 @@ public class ApiService
                             localTransaction.Recipient = serverTransaction.Recipient;
                             localTransaction.Description = serverTransaction.Description;
                             localTransaction.TransactionDate = serverTransaction.TransactionDate;
+                            localTransaction.TransactionType = serverTransaction.TransactionType;
+                            localTransaction.Balance = serverTransaction.Balance;
                             localTransaction.IsSynchronized = true;
                             localTransaction.LastSyncDate = DateTime.Now;
                             await _databaseService.SaveTransactionAsync(localTransaction);
@@ -158,10 +157,19 @@ public class TransactionDto
     public string Recipient { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public DateTime TransactionDate { get; set; }
+    public string TransactionType { get; set; } = TransactionTypes.Spending;
+    public decimal Balance { get; set; }
 }
 
 public class SyncResponse
 {
     public bool Success { get; set; }
     public List<TransactionDto> UpdatedTransactions { get; set; } = [];
+}
+
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true)]
+[JsonSerializable(typeof(ExportData))]
+[JsonSerializable(typeof(SyncResponse))]
+internal partial class ApiSerializerContext : JsonSerializerContext
+{
 }

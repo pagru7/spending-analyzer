@@ -3,7 +3,7 @@ using Spending_Analyzer_Mobile.Services;
 
 namespace Spending_Analyzer_Mobile;
 
-[Activity(Label = "@string/app_name", MainLauncher = true)]
+[Activity(Label = "@string/app_name", MainLauncher = true, Exported = true)]
 public class MainActivity : Activity
 {
     private TextView? _textBalance;
@@ -13,10 +13,13 @@ public class MainActivity : Activity
     private Button? _btnExportData;
     private Button? _btnSettings;
 
-    protected override void OnCreate(Bundle? savedInstanceState)
+    protected override async void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
         SetContentView(Resource.Layout.activity_main);
+
+        // Initialize database before using it
+        await DatabaseService.EnsureInitializedAsync();
 
         InitializeViews();
         SetupClickListeners();
@@ -69,16 +72,13 @@ public class MainActivity : Activity
         try
         {
             var db = DatabaseService.Instance;
-            var settings = await db.GetSettingsAsync();
-            var totalSpending = await db.GetTotalSpendingAsync();
+            var latestBalance = await db.GetLatestBalanceAsync();
             var transactionCount = await db.GetTransactionCountAsync();
-
-            var balance = (settings?.InitialBalance ?? 0) - totalSpending;
 
             RunOnUiThread(() =>
             {
-                _textBalance!.Text = $"${balance:N2}";
-                _textBalance.SetTextColor(balance >= 0
+                _textBalance!.Text = $"${latestBalance:N2}";
+                _textBalance.SetTextColor(latestBalance >= 0
                     ? Android.Graphics.Color.ParseColor("#4CAF50")
                     : Android.Graphics.Color.ParseColor("#F44336"));
                 _textTransactionCount!.Text = $"{transactionCount} transaction(s)";

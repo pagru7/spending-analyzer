@@ -3,17 +3,25 @@ using Spending_Analyzer_Mobile.Services;
 
 namespace Spending_Analyzer_Mobile;
 
-[Activity(Label = "Add Expense")]
+[Activity(Label = "Add Expense", Exported = false)]
 public class AddTransactionActivity : Activity
 {
     private TextView? _textTitle;
     private EditText? _editAmount;
     private EditText? _editRecipient;
     private EditText? _editDescription;
+    private Spinner? _spinnerType;
     private Button? _btnSelectDate;
     private Button? _btnSelectTime;
     private Button? _btnSave;
     private Button? _btnDelete;
+
+    private readonly string[] _transactionTypes =
+    [
+        TransactionTypes.Spending,
+        TransactionTypes.Income,
+        TransactionTypes.Transfer
+    ];
 
     private DateTime _selectedDateTime = DateTime.Now;
     private int _transactionId;
@@ -27,6 +35,7 @@ public class AddTransactionActivity : Activity
         _transactionId = Intent?.GetIntExtra("TransactionId", 0) ?? 0;
 
         InitializeViews();
+        SetupTypeSpinner();
         SetupClickListeners();
 
         if (_transactionId > 0)
@@ -45,10 +54,18 @@ public class AddTransactionActivity : Activity
         _editAmount = FindViewById<EditText>(Resource.Id.editAmount);
         _editRecipient = FindViewById<EditText>(Resource.Id.editRecipient);
         _editDescription = FindViewById<EditText>(Resource.Id.editDescription);
+        _spinnerType = FindViewById<Spinner>(Resource.Id.spinnerTransactionType);
         _btnSelectDate = FindViewById<Button>(Resource.Id.btnSelectDate);
         _btnSelectTime = FindViewById<Button>(Resource.Id.btnSelectTime);
         _btnSave = FindViewById<Button>(Resource.Id.btnSave);
         _btnDelete = FindViewById<Button>(Resource.Id.btnDelete);
+    }
+
+    private void SetupTypeSpinner()
+    {
+        var adapter = new ArrayAdapter<string>(this, Android.Resource.Layout.SimpleSpinnerItem, _transactionTypes);
+        adapter.SetDropDownViewResource(Android.Resource.Layout.SimpleSpinnerDropDownItem);
+        _spinnerType!.Adapter = adapter;
     }
 
     private async void LoadTransaction()
@@ -59,6 +76,8 @@ public class AddTransactionActivity : Activity
             if (_existingTransaction != null)
             {
                 _selectedDateTime = _existingTransaction.TransactionDate;
+                var typeIndex = Array.IndexOf(_transactionTypes, _existingTransaction.TransactionType);
+                var selectedIndex = typeIndex >= 0 ? typeIndex : 0;
 
                 RunOnUiThread(() =>
                 {
@@ -66,6 +85,7 @@ public class AddTransactionActivity : Activity
                     _editAmount!.Text = _existingTransaction.Amount.ToString("F2");
                     _editRecipient!.Text = _existingTransaction.Recipient;
                     _editDescription!.Text = _existingTransaction.Description;
+                    _spinnerType!.SetSelection(selectedIndex);
                     _btnDelete!.Visibility = Android.Views.ViewStates.Visible;
                     UpdateDateTimeButtons();
                 });
@@ -143,6 +163,7 @@ public class AddTransactionActivity : Activity
             transaction.Recipient = _editRecipient.Text ?? string.Empty;
             transaction.Description = _editDescription!.Text ?? string.Empty;
             transaction.TransactionDate = _selectedDateTime;
+            transaction.TransactionType = _spinnerType!.SelectedItem?.ToString() ?? TransactionTypes.Spending;
 
             if (_existingTransaction != null)
             {
@@ -192,3 +213,4 @@ public class AddTransactionActivity : Activity
         }
     }
 }
+

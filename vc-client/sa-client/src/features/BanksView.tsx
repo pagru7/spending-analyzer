@@ -15,7 +15,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { currencyFormatter } from '@/lib/formatters';
 import type { BankAccountResponse, BankResponse } from '@/types/api';
-import { Trash2Icon } from 'lucide-react';
+import { PencilIcon, Trash2Icon } from 'lucide-react';
 
 interface BanksViewProps {
   banks?: BankResponse[];
@@ -25,6 +25,7 @@ interface BanksViewProps {
   onMarkInactive: (bank: BankResponse) => void;
   onAddAccount: (bank: BankResponse) => void;
   onDeleteAccount: (account: BankAccountResponse, bankId: number) => void;
+  onUpdateBalance: (account: BankAccountResponse, bankId: string) => void;
   onRefresh: () => Promise<unknown>;
   busyBankId: string | null;
   busyAccountId: string | null;
@@ -39,6 +40,7 @@ const BanksView = ({
   onMarkInactive,
   onAddAccount,
   onDeleteAccount,
+  onUpdateBalance,
   onRefresh,
   busyBankId,
   busyAccountId,
@@ -204,6 +206,18 @@ const BanksView = ({
                             <p className="text-sm font-semibold">
                               {currencyFormatter.format(account.balance)}
                             </p>
+                            <Button
+                              size="icon-sm"
+                              variant="ghost"
+                              onClick={() => onUpdateBalance(account, bank.id)}
+                              disabled={
+                                busyAccountId === account.id ||
+                                account.isInactive
+                              }
+                              title="Update balance"
+                            >
+                              <PencilIcon className="size-4" />
+                            </Button>
                             <Button
                               size="icon-sm"
                               variant="ghost"

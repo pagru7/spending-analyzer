@@ -37,6 +37,7 @@ import BanksView from './features/BanksView';
 import ImportTransactionsDialog from './features/ImportTransactionsDialog';
 import TransactionsView from './features/TransactionsView';
 import TransfersView from './features/TransfersView';
+import UpdateAccountBalanceDialog from './features/UpdateAccountBalanceDialog';
 import UpdateBankDialog from './features/UpdateBankDialog';
 import UpdateTransactionDialog from './features/UpdateTransactionDialog';
 
@@ -54,6 +55,11 @@ function App() {
     useState<BankResponse | null>(null);
   const [transactionToEdit, setTransactionToEdit] =
     useState<TransactionResponse | null>(null);
+  const [accountToUpdateBalance, setAccountToUpdateBalance] =
+    useState<BankAccountResponse | null>(null);
+  const [bankIdForBalanceUpdate, setBankIdForBalanceUpdate] = useState<
+    string | null
+  >(null);
   const [bankActionError, setBankActionError] = useState<string | null>(null);
   const [busyBankId, setBusyBankId] = useState<string | null>(null);
   const [busyAccountId, setBusyAccountId] = useState<string | null>(null);
@@ -213,6 +219,10 @@ function App() {
             setBankForNewAccount(bank);
           }}
           onDeleteAccount={handleDeleteAccount}
+          onUpdateBalance={(account, bankId) => {
+            setAccountToUpdateBalance(account);
+            setBankIdForBalanceUpdate(bankId);
+          }}
           onRefresh={() => refetchBanks()}
           busyBankId={busyBankId}
           busyAccountId={busyAccountId}
@@ -445,6 +455,18 @@ function App() {
         accounts={accounts}
         onSuccess={async () => {
           await Promise.allSettled([refetchTransactions(), refetchBanks()]);
+        }}
+      />
+
+      <UpdateAccountBalanceDialog
+        account={accountToUpdateBalance}
+        bankId={bankIdForBalanceUpdate}
+        onClose={() => {
+          setAccountToUpdateBalance(null);
+          setBankIdForBalanceUpdate(null);
+        }}
+        onSuccess={async () => {
+          await refetchBanks();
         }}
       />
     </div>

@@ -1,3 +1,5 @@
 <Solution>
-  <Project Path="Spending Analyzer Mobile/Spending Analyzer Mobile.csproj" />
+  <Project Path="Spending Analyzer Mobile/Spending Analyzer Mobile.csproj">
+    <Deploy Solution="Release|*" />
+  </Project>
 </Solution>

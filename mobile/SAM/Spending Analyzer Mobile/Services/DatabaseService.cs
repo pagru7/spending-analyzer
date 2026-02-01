@@ -7,6 +7,7 @@ public class DatabaseService
 {
     private readonly SQLiteAsyncConnection _database;
     private static DatabaseService? _instance;
+    private static Task? _initializationTask;
 
     public static DatabaseService Instance => _instance ??= new DatabaseService();
 
@@ -14,7 +15,15 @@ public class DatabaseService
     {
         var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "spending_analyzer.db");
         _database = new SQLiteAsyncConnection(dbPath);
-        InitializeAsync().Wait();
+    }
+
+    public static async Task EnsureInitializedAsync()
+    {
+        if (_initializationTask == null)
+        {
+            _initializationTask = Instance.InitializeAsync();
+        }
+        await _initializationTask;
     }
 
     private async Task InitializeAsync()
@@ -22,10 +31,51 @@ public class DatabaseService
         await _database.CreateTableAsync<Transaction>();
         await _database.CreateTableAsync<AppSettings>();
 
+        await TryAddTransactionColumnAsync("TransactionType", "TEXT");
+        await TryAddTransactionColumnAsync("Balance", "REAL");
+
         var settings = await GetSettingsAsync();
         if (settings == null)
         {
             await SaveSettingsAsync(new AppSettings());
+        }
+    }
+
+    private async Task TryAddTransactionColumnAsync(string columnName, string columnType)
+    {
+        try
+        {
+            await _database.ExecuteAsync($"ALTER TABLE Transaction ADD COLUMN {columnName} {columnType}");
+        }
+        catch (SQLiteException)
+        {
+            // Column already exists
+        }
+    }
+
+    private static decimal GetSignedAmount(Transaction transaction)
+    {
+        return transaction.TransactionType switch
+        {
+            TransactionTypes.Income => transaction.Amount,
+            TransactionTypes.Transfer => 0m,
+            _ => -transaction.Amount
+        };
+    }
+
+    private async Task RecalculateBalancesAsync()
+    {
+        var ordered = await _database.Table<Transaction>()
+            .OrderBy(t => t.TransactionDate)
+            .ThenBy(t => t.Id)
+            .ToListAsync();
+
+        var runningBalance = 0m;
+        foreach (var transaction in ordered)
+        {
+            runningBalance += GetSignedAmount(transaction);
+            transaction.Balance = runningBalance;
+            await _database.UpdateAsync(transaction);
         }
     }
 
@@ -91,16 +141,25 @@ public class DatabaseService
 
     public async Task<int> SaveTransactionAsync(Transaction transaction)
     {
+        int result;
         if (transaction.Id != 0)
         {
-            return await _database.UpdateAsync(transaction);
+            result = await _database.UpdateAsync(transaction);
         }
-        return await _database.InsertAsync(transaction);
+        else
+        {
+            result = await _database.InsertAsync(transaction);
+        }
+
+        await RecalculateBalancesAsync();
+        return result;
     }
 
     public async Task<int> DeleteTransactionAsync(Transaction transaction)
     {
-        return await _database.DeleteAsync(transaction);
+        var result = await _database.DeleteAsync(transaction);
+        await RecalculateBalancesAsync();
+        return result;
     }
 
     public async Task<List<Transaction>> GetUnsynchronizedTransactionsAsync()
@@ -147,9 +206,21 @@ public class DatabaseService
         return await _database.Table<Transaction>().CountAsync();
     }
 
+    public async Task<decimal> GetLatestBalanceAsync()
+    {
+        var latest = await _database.Table<Transaction>()
+            .OrderByDescending(t => t.TransactionDate)
+            .ThenByDescending(t => t.Id)
+            .FirstOrDefaultAsync();
+
+        return latest?.Balance ?? 0m;
+    }
+
     public async Task<decimal> GetTotalSpendingAsync()
     {
         var transactions = await GetTransactionsAsync();
-        return transactions.Sum(t => t.Amount);
+        return transactions
+            .Where(t => t.TransactionType == TransactionTypes.Spending)
+            .Sum(t => t.Amount);
     }
 }

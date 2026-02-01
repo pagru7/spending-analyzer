@@ -83,25 +83,6 @@
             android:layout_height="wrap_content"
             android:hint="API Key"
             android:inputType="textPassword"
-            android:layout_marginBottom="16dp"
-            android:padding="12dp"
-            android:background="@android:drawable/edit_text" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Financial Settings"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#424242"
-            android:layout_marginBottom="8dp" />
-
-        <EditText
-            android:id="@+id/editInitialBalance"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Initial Balance"
-            android:inputType="numberDecimal"
             android:layout_marginBottom="24dp"
             android:padding="12dp"
             android:background="@android:drawable/edit_text" />

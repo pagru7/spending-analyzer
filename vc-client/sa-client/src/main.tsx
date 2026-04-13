@@ -6,10 +6,7 @@ import App from './App.tsx';
 import './index.css';
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:5000',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:5117',
 });
 
 configure({ axios: axiosInstance });
@@ -17,5 +14,5 @@ configure({ axios: axiosInstance });
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
-  </StrictMode>
+  </StrictMode>,
 );

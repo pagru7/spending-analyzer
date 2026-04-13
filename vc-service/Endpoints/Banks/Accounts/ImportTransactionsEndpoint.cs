@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SpendingAnalyzer.Common;
 using SpendingAnalyzer.Data;
 using SpendingAnalyzer.Entities;
+using SpendingAnalyzer.Services;
 using System.Globalization;
 using System.Text;
 
@@ -24,7 +25,7 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
 
         public override void Configure()
         {
-            Post("/api/transactions/import");
+            Post(ApiRoutes.BankAccountByIdTransactionImport);
             AllowAnonymous();
             AllowFileUploads();
             Description(q => q.WithTags("Transactions").Produces<ImportTransactionsRequest>(200));
@@ -40,44 +41,28 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
                     return;
                 }
 
-                using var stream = req.Transactions.OpenReadStream();
-                using var ms = new MemoryStream();
-                await stream.CopyToAsync(ms, ct);
-                var bytes = ms.ToArray();
+                var bankId = Route<int>("bankId");
+                var accountId = Route<int>("accountId");
 
-                string text;
-                string textUtf8 = Encoding.UTF8.GetString(bytes);
-                if (textUtf8.Contains('\uFFFD'))
-                {
-                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                    var cp1250 = Encoding.GetEncoding(1250);
-                    text = cp1250.GetString(bytes);
-                }
-                else
-                {
-                    text = textUtf8;
-                }
+                var bankAccount = await _db.Accounts
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(a => a.Id == accountId && a.BankId == bankId, ct);
 
-                var content = CsvReader.ReadFromText(text, new CsvOptions
-                {
-                    Separator = ',',
-                    HeaderMode = HeaderMode.HeaderPresent,
-                }).ToArray();
-
-                var bankAccountIdQuery = _db.Accounts
-                    .Include(ba => ba.Bank)
-                    .Where(b => b.Bank.Name.ToLower().Contains("inteligo") && b.Name.ToLower().Contains("osobiste"));
-
-                _logger.LogInformation(bankAccountIdQuery.ToQueryString());
-                var bankAccount = await bankAccountIdQuery.FirstOrDefaultAsync(ct);
                 if (bankAccount is null)
                 {
-                    _logger.LogWarning("Bank account for import not found.");
-                    Response = new ImportTransactionsResponse(0);
+                    _logger.LogWarning("Bank account not found for import. BankId: {BankId}, AccountId: {AccountId}", bankId, accountId);
+                    HttpContext.Response.StatusCode = 404;
                     return;
                 }
 
-                var newTransactions = ProcessContent(content, bankAccount.Id, ct)?.ToList();
+                var processor = new TransactionImportProcessor();
+                ICsvLine[] content = await processor.GetContent(
+                    req.Transactions,
+                    ct);
+
+                
+
+                var newTransactions = ProcessContent(content, bankAccount.Id)?.ToList();
                 if (newTransactions is null || !newTransactions.Any())
                 {
                     Response = new ImportTransactionsResponse(0);
@@ -85,7 +70,8 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
                 }
 
                 var newTransactionIds = newTransactions
-                    .Select(nt => nt.ExternalId).ToList();
+                    .Select(nt => nt.ExternalId)
+                    .ToList();
 
                 var existingExternalIds = await _db.ImportedTransactions
                     .Where(t => newTransactionIds.Contains(t.ExternalId))
@@ -95,8 +81,7 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
                 var transactionsToAdd = newTransactions
                     .Where(nt => !existingExternalIds.Contains(nt.ExternalId));
 
-                await _db.ImportedTransactions
-                    .AddRangeAsync(transactionsToAdd, ct);
+                await _db.ImportedTransactions.AddRangeAsync(transactionsToAdd, ct);
                 var addedTransactions = await _db.SaveChangesAsync(ct);
 
                 Response = new ImportTransactionsResponse(addedTransactions);
@@ -108,7 +93,7 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
             }
         }
 
-        private IEnumerable<ImportedTransaction>? ProcessContent(IEnumerable<ICsvLine> content, int bankAccountId, CancellationToken ct)
+        private IEnumerable<ImportedTransaction>? ProcessContent(IEnumerable<ICsvLine> content, int bankAccountId)
             => content?.Select(line => InitializeTransaction(line, bankAccountId)).Where(t => t is not null)!;
 
         private ImportedTransaction? InitializeTransaction(ICsvLine line, int bankAccountId)

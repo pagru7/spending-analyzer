@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5000"
+      "url": "http://localhost:5117"
     }
   ],
   "paths": {
@@ -556,13 +556,31 @@
         }
       }
     },
-    "/api/transactions/import": {
+    "/api/banks/{bankId}/accounts/{accountId}/transaction/import": {
       "post": {
         "tags": [
           "Transactions",
           "Api"
         ],
         "operationId": "SpendingAnalyzerEndpointsBanksAccountsImportTransactionsEndpoint",
+        "parameters": [
+          {
+            "name": "bankId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "x-name": "ImportTransactionsRequest",
           "description": "",
@@ -626,7 +644,7 @@
       }
     },
     "/api/banks/{bankId}/accounts/{accountId}/balance": {
-      "post": {
+      "patch": {
         "tags": [
           "Accounts",
           "Api"

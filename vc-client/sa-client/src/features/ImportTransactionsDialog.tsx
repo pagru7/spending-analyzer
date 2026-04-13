@@ -55,9 +55,17 @@ const ImportTransactionsDialog = ({
   });
 
   const [{ loading, error }, executeImport] = useAxios(
-    { url: '/api/transactions/import', method: 'POST' },
-    { manual: true }
+    { method: 'POST' },
+    { manual: true },
   );
+
+  const selectedAccountId = form.watch('accountId');
+  const selectedAccountForLabel = accounts.find(
+    (account) => String(account.id) === selectedAccountId,
+  );
+  const selectedAccountLabel = selectedAccountForLabel
+    ? `${selectedAccountForLabel.bankName} - ${selectedAccountForLabel.name}`
+    : undefined;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,12 +80,20 @@ const ImportTransactionsDialog = ({
       return;
     }
 
+    const selectedAccount = accounts.find(
+      (account) => String(account.id) === values.accountId,
+    );
+
+    if (!selectedAccount?.bankId) {
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('accountId', values.accountId);
-    formData.append('file', values.file);
+    formData.append('transactions', values.file);
 
     try {
       await executeImport({
+        url: `/api/banks/${String(selectedAccount.bankId)}/accounts/${values.accountId}/transaction/import`,
         data: formData,
       });
       await onSuccess();
@@ -132,7 +148,9 @@ const ImportTransactionsDialog = ({
               }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger id="import-account">
-                    <SelectValue placeholder="Choose account" />
+                    <SelectValue placeholder="Choose account">
+                      {selectedAccountLabel}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {accounts.length === 0 ? (
@@ -141,7 +159,10 @@ const ImportTransactionsDialog = ({
                       </SelectItem>
                     ) : (
                       accounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id}>
+                        <SelectItem
+                          key={String(account.id)}
+                          value={String(account.id)}
+                        >
                           {account.bankName} - {account.name}
                         </SelectItem>
                       ))

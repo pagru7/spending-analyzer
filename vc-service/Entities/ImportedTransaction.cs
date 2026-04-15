@@ -21,7 +21,7 @@ public class ImportedTransaction : Entity
     /// <summary>
     /// Gets or sets the type identifier associated with the current instance.
     /// </summary>
-    public ImportTransactionType? Type { get; set; }
+    public TransactionType? Type { get; set; }
 
     /// <summary>
     /// Gets or sets the monetary amount associated with the transaction.

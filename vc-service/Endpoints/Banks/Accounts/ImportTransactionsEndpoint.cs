@@ -60,9 +60,11 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
                     req.Transactions,
                     ct);
 
-                
 
-                var newTransactions = ProcessContent(content, bankAccount.Id)?.ToList();
+
+                //var newTransactions = ProcessContent(content, bankAccount.Id)?.ToList();
+                InteligoTransactionImportDataParser parser = new InteligoTransactionImportDataParser();
+                var newTransactions = content.Select(cline => parser.InitializeTransaction(cline, bankAccount.Id));
                 if (newTransactions is null || !newTransactions.Any())
                 {
                     Response = new ImportTransactionsResponse(0);
@@ -91,65 +93,7 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
                 _logger.LogError(ex, "An unexpected error occurred during transaction import.");
                 ThrowError("An unexpected error occurred. Please try again later.");
             }
-        }
-
-        private IEnumerable<ImportedTransaction>? ProcessContent(IEnumerable<ICsvLine> content, int bankAccountId)
-            => content?.Select(line => InitializeTransaction(line, bankAccountId)).Where(t => t is not null)!;
-
-        private ImportedTransaction? InitializeTransaction(ICsvLine line, int bankAccountId)
-        {
-            if (!int.TryParse(line[0], out var externalId))
-            {
-                _logger.LogError("Failed to parse ExternalId: {ExternalId}", line[0]);
-                return null;
-            }
-
-            if (!DateTime.TryParse(line[2], CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var issueDate))
-            {
-                _logger.LogError("Failed to parse IssueDate: {IssueDate}", line[2]);
-                return null;
-            }
-
-            var csvType = line[3].ToLower();
-            if (!ImportTransactionTypeMapping.Mapping.TryGetValue(csvType, out var transactionType))
-            {
-                _logger.LogWarning("Could not map transaction type: {CsvType}", line[3]);
-                return null;
-            }
-
-            if (!Enum.TryParse<Currency>(line[5], true, out var currency))
-            {
-                _logger.LogError("Failed to parse Currency: {Currency}", line[5]);
-                return null;
-            }
-
-            if (!decimal.TryParse(line[4], NumberStyles.Float, CultureInfo.InvariantCulture, out var amount))
-            {
-                _logger.LogError("Failed to parse Amount: {Amount}", line[4]);
-                return null;
-            }
-
-            if (!decimal.TryParse(line[6], NumberStyles.Float, CultureInfo.InvariantCulture, out var balance))
-            {
-                _logger.LogError("Failed to parse Balance: {Balance}", line[6]);
-                return null;
-            }
-
-            return new ImportedTransaction
-            {
-                AccountId = bankAccountId,
-                ExternalId = externalId,
-                IssueDate = issueDate.ToUniversalTime(),
-                Type = transactionType,
-                Amount = amount,
-                Currency = currency,
-                Balance = balance,
-                IssuerBankAccountNumber = line[7],
-                IssuerName = line[8],
-                Description = line[9],
-                Description2 = line[10],
-            };
-        }
+        }        
     }
 
     internal record ImportTransactionsResponse(int AddedTransactions);

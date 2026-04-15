@@ -12,4 +12,12 @@
         ATMWithdrawal = 8,
         AccountDeposit = 9
     }
+
+    public enum TransactionType
+    {
+        Transfer,
+        Code,
+        Card,
+        Withdrawal
+    }
 }

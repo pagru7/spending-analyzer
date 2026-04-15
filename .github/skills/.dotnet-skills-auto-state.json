@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "ProjectRoot": "D:\\sources2\\spending-analyzer",
+  "Skills": [
+    "dotnet-aspnet-core",
+    "dotnet-entity-framework-core",
+    "dotnet-microsoft-extensions",
+    "minimal-api-file-upload",
+    "optimizing-ef-core-queries"
+  ],
+  "UpdatedAt": "2026-04-14T11:59:30.6306465+00:00"
+}

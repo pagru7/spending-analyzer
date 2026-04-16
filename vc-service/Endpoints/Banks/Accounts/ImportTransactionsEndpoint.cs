@@ -1,12 +1,8 @@
 ﻿using Csv;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using SpendingAnalyzer.Common;
 using SpendingAnalyzer.Data;
-using SpendingAnalyzer.Entities;
 using SpendingAnalyzer.Services;
-using System.Globalization;
-using System.Text;
 
 namespace SpendingAnalyzer.Endpoints.Banks.Accounts
 {
@@ -56,16 +52,34 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
                 }
 
                 var processor = new TransactionImportProcessor();
-                ICsvLine[] content = await processor.GetContent(
-                    req.Transactions,
-                    ct);
+                ICsvLine[] content = await processor.GetContent(req.Transactions, ct);
 
+                var parser = new InteligoTransactionImportDataParser();
+                var parsedTransactions = content
+                    .Select((line, index) => new
+                    {
+                        LineNumber = index + 1,
+                        Result = parser.InitializeTransaction(line, bankAccount.Id)
+                    })
+                    .ToList();
 
+                var failedParse = parsedTransactions.FirstOrDefault(x => !x.Result.IsSuccess);
+                if (failedParse is not null)
+                {
+                    _logger.LogWarning(
+                        "Transaction import parse failed at CSV line {LineNumber}. Error: {Error}",
+                        failedParse.LineNumber,
+                        failedParse.Result.Error);
 
-                //var newTransactions = ProcessContent(content, bankAccount.Id)?.ToList();
-                InteligoTransactionImportDataParser parser = new InteligoTransactionImportDataParser();
-                var newTransactions = content.Select(cline => parser.InitializeTransaction(cline, bankAccount.Id));
-                if (newTransactions is null || !newTransactions.Any())
+                    ThrowError($"CSV parsing failed at line {failedParse.LineNumber}: {failedParse.Result.Error}");
+                    return;
+                }
+
+                var newTransactions = parsedTransactions
+                    .Select(x => x.Result.Value!)
+                    .ToList();
+
+                if (!newTransactions.Any())
                 {
                     Response = new ImportTransactionsResponse(0);
                     return;
@@ -93,7 +107,7 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
                 _logger.LogError(ex, "An unexpected error occurred during transaction import.");
                 ThrowError("An unexpected error occurred. Please try again later.");
             }
-        }        
+        }
     }
 
     internal record ImportTransactionsResponse(int AddedTransactions);

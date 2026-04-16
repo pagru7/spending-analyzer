@@ -1,7 +1,6 @@
 ﻿using Csv;
 using SpendingAnalyzer.Common;
 using SpendingAnalyzer.Entities;
-using System.Globalization;
 
 namespace SpendingAnalyzer.Services
 {
@@ -21,34 +20,40 @@ namespace SpendingAnalyzer.Services
             Description2 = 10,
         }
 
-        public ImportedTransaction? InitializeTransaction(
+        internal readonly record struct ParseResult<T>(bool IsSuccess, T? Value, string? Error)
+        {
+            public static ParseResult<T> Success(T value) => new(true, value, null);
+            public static ParseResult<T> Failure(string error) => new(false, default, error);
+        }
+
+        public ParseResult<ImportedTransaction> InitializeTransaction(
             ICsvLine line,
             int bankAccountId)
         {
             if (!line.TryGetInt(ImportedTransactionDataAdnotation.ExternalId, out var externalId))
-                return null;
+                return ParseResult<ImportedTransaction>.Failure("ExternalId cannot be parsed.");
 
             if (!line.TryGetDate(ImportedTransactionDataAdnotation.IssueDate, out var issueDate))
-                return null;
+                return ParseResult<ImportedTransaction>.Failure("IssueDate cannot be parsed.");
 
             if (!line.TryGetTransactionType(ImportedTransactionDataAdnotation.TransactionType, out var transactionType))
-                return null;
+                return ParseResult<ImportedTransaction>.Failure("TransactionType cannot be parsed.");
 
             if (!line.TryGetDecimal(ImportedTransactionDataAdnotation.Amount, out var amount))
-                return null;
+                return ParseResult<ImportedTransaction>.Failure("Amount cannot be parsed.");
 
             if (!line.TryGetCurrency(ImportedTransactionDataAdnotation.Currency, out var currency))
-                return null;
+                return ParseResult<ImportedTransaction>.Failure("Currency cannot be parsed.");
 
             if (!line.TryGetDecimal(ImportedTransactionDataAdnotation.Balance, out var balance))
-                return null;
+                return ParseResult<ImportedTransaction>.Failure("Balance cannot be parsed.");
 
             line.TryGetString(ImportedTransactionDataAdnotation.BankAccount, out var bankAccountNumber);
             line.TryGetString(ImportedTransactionDataAdnotation.Name, out var issuerName);
             line.TryGetString(ImportedTransactionDataAdnotation.Description, out var description);
             line.TryGetString(ImportedTransactionDataAdnotation.Description2, out var description2);
 
-            return new ImportedTransaction
+            var transaction = new ImportedTransaction
             {
                 AccountId = bankAccountId,
                 ExternalId = externalId,
@@ -62,6 +67,8 @@ namespace SpendingAnalyzer.Services
                 Description = description ?? string.Empty,
                 Description2 = description2 ?? string.Empty,
             };
+
+            return ParseResult<ImportedTransaction>.Success(transaction);
         }
     }
 }

@@ -1,5 +1,3 @@
-using SpendingAnalyzer.Common;
-
 namespace SpendingAnalyzer.Entities;
 
 public class ImportedTransaction : Entity
@@ -11,32 +9,34 @@ public class ImportedTransaction : Entity
     /// <summary>
     /// Gets or sets the date when the issue was created or recorded.
     /// </summary>
-    public DateTime? IssueDate { get; set; }
+    public string IssueDate { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the external identifier associated with the entity.
     /// </summary>
-    public int? ExternalId { get; set; }
+    public string ExternalId { get; set; } = string.Empty;
+
+    public int? ExternalIdParsed { get; set; }
 
     /// <summary>
     /// Gets or sets the type identifier associated with the current instance.
     /// </summary>
-    public TransactionType? Type { get; set; }
+    public string Type { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the monetary amount associated with the transaction.
     /// </summary>
-    public decimal Amount { get; set; }
+    public string Amount { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the currency associated with the transaction or value.
     /// </summary>
-    public Currency Currency { get; set; } = Currency.PLN;
+    public string Currency { get; set; } = string.Empty;
 
     /// <summary>
     /// Balance after the transaction
     /// </summary>
-    public decimal Balance { get; set; }
+    public string Balance { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the bank account number of the issuer associated with the transaction.

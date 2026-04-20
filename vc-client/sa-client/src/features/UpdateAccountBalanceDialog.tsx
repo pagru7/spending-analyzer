@@ -36,7 +36,7 @@ const UpdateAccountBalanceDialog = ({
     {
       method: 'PATCH',
     },
-    { manual: true }
+    { manual: true },
   );
 
   useEffect(() => {

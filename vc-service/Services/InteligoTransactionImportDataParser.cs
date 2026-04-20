@@ -30,38 +30,40 @@ namespace SpendingAnalyzer.Services
             ICsvLine line,
             int bankAccountId)
         {
-            if (!line.TryGetInt(ImportedTransactionDataAdnotation.ExternalId, out var externalId))
-                return ParseResult<ImportedTransaction>.Failure("ExternalId cannot be parsed.");
-
-            if (!line.TryGetDate(ImportedTransactionDataAdnotation.IssueDate, out var issueDate))
-                return ParseResult<ImportedTransaction>.Failure("IssueDate cannot be parsed.");
-
-            if (!line.TryGetTransactionType(ImportedTransactionDataAdnotation.TransactionType, out var transactionType))
-                return ParseResult<ImportedTransaction>.Failure("TransactionType cannot be parsed.");
-
-            if (!line.TryGetDecimal(ImportedTransactionDataAdnotation.Amount, out var amount))
-                return ParseResult<ImportedTransaction>.Failure("Amount cannot be parsed.");
-
-            if (!line.TryGetCurrency(ImportedTransactionDataAdnotation.Currency, out var currency))
-                return ParseResult<ImportedTransaction>.Failure("Currency cannot be parsed.");
-
-            if (!line.TryGetDecimal(ImportedTransactionDataAdnotation.Balance, out var balance))
-                return ParseResult<ImportedTransaction>.Failure("Balance cannot be parsed.");
-
+            line.TryGetString(ImportedTransactionDataAdnotation.ExternalId, out var externalId);
+            line.TryGetString(ImportedTransactionDataAdnotation.IssueDate, out var issueDate);
+            line.TryGetString(ImportedTransactionDataAdnotation.TransactionType, out var transactionType);
+            line.TryGetString(ImportedTransactionDataAdnotation.Amount, out var amount);
+            line.TryGetString(ImportedTransactionDataAdnotation.Currency, out var currency);
+            line.TryGetString(ImportedTransactionDataAdnotation.Balance, out var balance);
             line.TryGetString(ImportedTransactionDataAdnotation.BankAccount, out var bankAccountNumber);
             line.TryGetString(ImportedTransactionDataAdnotation.Name, out var issuerName);
             line.TryGetString(ImportedTransactionDataAdnotation.Description, out var description);
             line.TryGetString(ImportedTransactionDataAdnotation.Description2, out var description2);
 
+            var rawExternalId = externalId?.Trim() ?? string.Empty;
+            int? externalIdParsed = null;
+
+            if (!string.IsNullOrWhiteSpace(rawExternalId))
+            {
+                if (!int.TryParse(rawExternalId, out var parsedExternalId))
+                {
+                    throw new FormatException($"Cannot parse ExternalId '{rawExternalId}' to integer.");
+                }
+
+                externalIdParsed = parsedExternalId;
+            }
+
             var transaction = new ImportedTransaction
             {
                 AccountId = bankAccountId,
-                ExternalId = externalId,
-                IssueDate = issueDate.ToUniversalTime(),
-                Type = transactionType,
-                Amount = amount,
-                Currency = currency,
-                Balance = balance,
+                ExternalId = rawExternalId,
+                ExternalIdParsed = externalIdParsed,
+                IssueDate = issueDate ?? string.Empty,
+                Type = transactionType ?? string.Empty,
+                Amount = amount ?? string.Empty,
+                Currency = currency ?? string.Empty,
+                Balance = balance ?? string.Empty,
                 IssuerBankAccountNumber = bankAccountNumber ?? string.Empty,
                 IssuerName = issuerName ?? string.Empty,
                 Description = description ?? string.Empty,

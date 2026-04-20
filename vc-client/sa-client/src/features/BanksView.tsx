@@ -170,8 +170,8 @@ const BanksView = ({
                       {busyBankId === bank.id
                         ? 'Updating...'
                         : bank.isInactive
-                        ? 'Bank inactive'
-                        : 'Mark inactive'}
+                          ? 'Bank inactive'
+                          : 'Mark inactive'}
                     </Button>
                   </div>
 
@@ -198,7 +198,7 @@ const BanksView = ({
                             <p className="text-xs text-muted-foreground">
                               Created{' '}
                               {new Date(
-                                account.creationDate
+                                account.creationDate,
                               ).toLocaleDateString()}
                             </p>
                           </div>

@@ -16,5 +16,6 @@ namespace SpendingAnalyzer.Endpoints
         public const string BankAccountByIdBalance = "/api/banks/{bankId}/accounts/{accountId}/balance";
         public const string Transactions = "/api/transactions";
         public const string TransactionById = "/api/transactions/{id}";
+        public const string ImportedTransactions = "/api/imported-transactions";
     }
 }

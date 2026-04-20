@@ -70,6 +70,23 @@ export interface CreateTransferRequest {
 
 export type UpdateTransferRequest = CreateTransferRequest;
 
+export interface ImportedTransactionResponse {
+  id: number;
+  externalId: string;
+  externalIdParsed?: number | null;
+  issueDate: string;
+  type: string;
+  amount: string;
+  currency: string;
+  balance: string;
+  issuerBankAccountNumber: string;
+  issuerName: string;
+  description: string;
+  description2: string;
+  accountId: number;
+  accountName: string;
+}
+
 export interface BankAccountDetailResponse extends BankAccountResponse {
   bankId: string;
   bankName: string;

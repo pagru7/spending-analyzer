@@ -32,24 +32,21 @@ public class GetAllTransactionsEndpoint : EndpointWithoutRequest<List<Transactio
             _logger.LogInformation("Fetching all transactions.");
             var transactions = await _db.Transactions
                 .Include(t => t.Account)
-                .OrderByDescending(t=>t.Id)
-                .ToArrayAsync(ct);
-            
-            _logger.LogInformation("Fetched {TransactionCount} transactions from database.", transactions.Length);
+                .OrderByDescending(t => t.Id)
+                .Select(t => new TransactionResponse
+                {
+                    Id = t.Id,
+                    Description = t.Description,
+                    AccountId = t.AccountId,
+                    AccountName = t.Account.Name,
+                    Recipient = t.Recipient,
+                    Amount = t.Amount,
+                    TransactionDate = t.TransactionDate,
+                })
+                .ToListAsync(ct);
 
-            var response = transactions.Select(t => new TransactionResponse
-            {
-                Id = t.Id,
-                Description = t.Description,
-                AccountId = t.AccountId,
-                AccountName = t.Account.Name,
-                Recipient = t.Recipient,
-                Amount = t.Amount,
-                TransactionDate = t.TransactionDate,
-            }).ToList();
-
-            Response = response;
-            _logger.LogInformation("Returning {TransactionCount} transactions.", response.Count);
+            Response = transactions;
+            _logger.LogInformation("Returning {TransactionCount} transactions.", transactions.Count);
         }
         catch (OperationCanceledException ex) when (ct.IsCancellationRequested)
         {

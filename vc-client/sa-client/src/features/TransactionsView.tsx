@@ -78,9 +78,7 @@ const TransactionsView = ({
                     {new Date(transaction.transactionDate).toLocaleDateString()}
                   </TableCell>
                   <TableCell>{transaction.description}</TableCell>
-                  <TableCell>
-                    {transaction.accountName}
-                  </TableCell>
+                  <TableCell>{transaction.accountName}</TableCell>
                   <TableCell>{transaction.recipient}</TableCell>
                   <TableCell className="text-right font-semibold">
                     {currencyFormatter.format(transaction.amount)}

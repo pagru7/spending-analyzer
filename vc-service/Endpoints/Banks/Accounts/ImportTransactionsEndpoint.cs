@@ -1,4 +1,4 @@
-﻿using Csv;
+using Csv;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using SpendingAnalyzer.Data;
@@ -86,16 +86,36 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
                 }
 
                 var newTransactionIds = newTransactions
-                    .Select(nt => nt.ExternalId)
+                    .Where(nt => nt.ExternalIdParsed.HasValue)
+                    .Select(nt => nt.ExternalIdParsed!.Value)
+                    .Distinct()
                     .ToList();
 
                 var existingExternalIds = await _db.ImportedTransactions
-                    .Where(t => newTransactionIds.Contains(t.ExternalId))
-                    .Select(t => t.ExternalId)
+                    .Where(t => t.AccountId == bankAccount.Id && t.ExternalIdParsed.HasValue && newTransactionIds.Contains(t.ExternalIdParsed.Value))
+                    .Select(t => t.ExternalIdParsed!.Value)
                     .ToHashSetAsync(ct);
 
-                var transactionsToAdd = newTransactions
-                    .Where(nt => !existingExternalIds.Contains(nt.ExternalId));
+                var transactionsToAdd = new List<SpendingAnalyzer.Entities.ImportedTransaction>();
+                var batchExternalIds = new HashSet<int>();
+
+                foreach (var transaction in newTransactions)
+                {
+                    if (!transaction.ExternalIdParsed.HasValue)
+                    {
+                        transactionsToAdd.Add(transaction);
+                        continue;
+                    }
+
+                    var parsedId = transaction.ExternalIdParsed.Value;
+                    if (existingExternalIds.Contains(parsedId))
+                        continue;
+
+                    if (!batchExternalIds.Add(parsedId))
+                        continue;
+
+                    transactionsToAdd.Add(transaction);
+                }
 
                 await _db.ImportedTransactions.AddRangeAsync(transactionsToAdd, ct);
                 var addedTransactions = await _db.SaveChangesAsync(ct);
@@ -117,3 +137,4 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
         public IFormFile Transactions { get; set; } = null!;
     }
 }
+

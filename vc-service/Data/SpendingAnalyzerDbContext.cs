@@ -68,8 +68,11 @@ public class SpendingAnalyzerDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Description).IsRequired().HasMaxLength(500);
             entity.Property(e => e.Recipient).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
             entity.Property(e => e.Type).HasColumnName("TransactionType");
+
+            entity.HasIndex(e => new { e.AccountId, e.ExternalIdParsed })
+                .IsUnique()
+                .HasFilter("\"ExternalIdParsed\" IS NOT NULL");
 
             entity.HasOne(e => e.Transaction)
             .WithOne(e => e.ImportedTransaction)

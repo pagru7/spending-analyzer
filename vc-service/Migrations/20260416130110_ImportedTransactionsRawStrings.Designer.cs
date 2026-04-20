@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SpendingAnalyzer.Data;
@@ -11,9 +12,11 @@ using SpendingAnalyzer.Data;
 namespace SpendingAnalyzer.Migrations
 {
     [DbContext(typeof(SpendingAnalyzerDbContext))]
-    partial class SpendingAnalyzerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260416130110_ImportedTransactionsRawStrings")]
+    partial class ImportedTransactionsRawStrings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -118,9 +121,6 @@ namespace SpendingAnalyzer.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("ExternalIdParsed")
-                        .HasColumnType("integer");
-
                     b.Property<string>("IssueDate")
                         .IsRequired()
                         .HasColumnType("text");
@@ -148,9 +148,7 @@ namespace SpendingAnalyzer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId", "ExternalIdParsed")
-                        .IsUnique()
-                        .HasFilter("\"ExternalIdParsed\" IS NOT NULL");
+                    b.HasIndex("AccountId");
 
                     b.ToTable("ImportedTransactions");
                 });

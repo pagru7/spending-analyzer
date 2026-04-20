@@ -25,8 +25,8 @@ import { currencyFormatter, numberFormatter } from '@/lib/formatters';
 import {
   type BankAccountResponse,
   type BankResponse,
+  type ImportedTransactionResponse,
   type TransactionResponse,
-  type TransferResponse,
   type UpdateBankRequest,
 } from '@/types/api';
 import AddAccountDialog from './features/AddAccountDialog';
@@ -34,14 +34,14 @@ import AddBankDialog from './features/AddBankDialog';
 import AddTransactionDialog from './features/AddTransactionDialog';
 import AddTransferDialog from './features/AddTransferDialog';
 import BanksView from './features/BanksView';
+import ImportedTransactionsView from './features/ImportedTransactionsView';
 import ImportTransactionsDialog from './features/ImportTransactionsDialog';
 import TransactionsView from './features/TransactionsView';
-import TransfersView from './features/TransfersView';
 import UpdateAccountBalanceDialog from './features/UpdateAccountBalanceDialog';
 import UpdateBankDialog from './features/UpdateBankDialog';
 import UpdateTransactionDialog from './features/UpdateTransactionDialog';
 
-type ViewKey = 'banks' | 'transactions' | 'transfers';
+type ViewKey = 'banks' | 'transactions' | 'importedTransactions';
 
 function App() {
   const [activeView, setActiveView] = useState<ViewKey>('banks');
@@ -79,21 +79,26 @@ function App() {
   ] = useAxios<TransactionResponse[]>({ url: '/api/transactions' });
 
   const [
-    { data: transfersData, loading: transfersLoading, error: transfersError },
-    refetchTransfers,
-  ] = useAxios<TransferResponse[]>({ url: '/api/transfers' });
+    {
+      data: importedTransactionsData,
+      loading: importedTransactionsLoading,
+      error: importedTransactionsError,
+    },
+  ] = useAxios<ImportedTransactionResponse[]>({
+    url: '/api/imported-transactions',
+  });
 
   const [, executeUpdateBank] = useAxios<BankResponse>(
     { method: 'PUT' },
-    { manual: true }
+    { manual: true },
   );
   const [, executeDeleteBank] = useAxios<void>(
     { method: 'DELETE' },
-    { manual: true }
+    { manual: true },
   );
   const [, executeDeleteAccount] = useAxios<void>(
     { method: 'DELETE' },
-    { manual: true }
+    { manual: true },
   );
 
   const accounts: BankAccountResponse[] = useMemo(() => {
@@ -103,7 +108,7 @@ function App() {
           ...account,
           bankId: bank.id,
           bankName: bank.name,
-        }))
+        })),
       )
       .filter((account: BankAccountResponse) => !account.isInactive);
   }, [banksData]);
@@ -113,17 +118,13 @@ function App() {
       accounts.reduce(
         (sum, account) =>
           sum + (Number.isFinite(account.balance) ? account.balance : 0),
-        0
+        0,
       ),
-    [accounts]
+    [accounts],
   );
 
   const refetchAll = async () => {
-    await Promise.allSettled([
-      refetchBanks(),
-      refetchTransactions(),
-      refetchTransfers(),
-    ]);
+    await Promise.allSettled([refetchBanks(), refetchTransactions()]);
   };
 
   const navItems: {
@@ -145,16 +146,16 @@ function App() {
       total: transactionsData?.length ?? 0,
     },
     {
-      key: 'transfers',
-      label: 'Transfers',
+      key: 'importedTransactions',
+      label: 'Imported transactions',
       icon: <SendIcon className="size-4" />,
-      total: transfersData?.length ?? 0,
+      total: importedTransactionsData?.length ?? 0,
     },
   ];
 
   const handleBankUpdate = async (
     bankId: string,
-    payload: UpdateBankRequest
+    payload: UpdateBankRequest,
   ) => {
     setBankActionError(null);
     setBusyBankId(bankId);
@@ -188,7 +189,7 @@ function App() {
 
   const handleDeleteAccount = async (
     account: BankAccountResponse,
-    bankId: number
+    bankId: number,
   ) => {
     setBankActionError(null);
     setBusyAccountId(account.id);
@@ -247,10 +248,14 @@ function App() {
     }
 
     return (
-      <TransfersView
-        transfers={transfersData}
-        loading={transfersLoading}
-        errorMessage={transfersError ? 'Unable to load transfers.' : null}
+      <ImportedTransactionsView
+        transactions={importedTransactionsData}
+        loading={importedTransactionsLoading}
+        errorMessage={
+          importedTransactionsError
+            ? 'Unable to load imported transactions.'
+            : null
+        }
       />
     );
   };
@@ -359,8 +364,8 @@ function App() {
                   <p className="text-2xl font-semibold">
                     {numberFormatter.format(
                       (banksData ?? []).filter(
-                        (bank: BankResponse) => !bank.isInactive
-                      ).length
+                        (bank: BankResponse) => !bank.isInactive,
+                      ).length,
                     )}
                   </p>
                 )}
@@ -414,7 +419,7 @@ function App() {
         onOpenChange={setIsAddTransferOpen}
         accounts={accounts}
         onSuccess={async () => {
-          await Promise.allSettled([refetchTransfers(), refetchBanks()]);
+          await refetchBanks();
         }}
       />
 

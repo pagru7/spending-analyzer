@@ -1,47 +1,27 @@
 import './App.css';
 
-import useAxios from 'axios-hooks';
-import {
-  BanknoteIcon,
-  Building2Icon,
-  CoinsIcon,
-  RefreshCcwIcon,
-  SendIcon,
-} from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { currencyFormatter, numberFormatter } from '@/lib/formatters';
+import { useAppData } from '@/hooks/useAppData';
 import {
   type BankAccountResponse,
   type BankResponse,
-  type ImportedTransactionResponse,
   type TransactionResponse,
-  type UpdateBankRequest,
 } from '@/types/api';
+import type { ViewKey } from '@/types/app';
 import AddAccountDialog from './features/AddAccountDialog';
 import AddBankDialog from './features/AddBankDialog';
 import AddTransactionDialog from './features/AddTransactionDialog';
 import AddTransferDialog from './features/AddTransferDialog';
+import AppSidebar from './features/AppSidebar';
 import BanksView from './features/BanksView';
+import DashboardCards from './features/DashboardCards';
 import ImportedTransactionsView from './features/ImportedTransactionsView';
 import ImportTransactionsDialog from './features/ImportTransactionsDialog';
 import TransactionsView from './features/TransactionsView';
 import UpdateAccountBalanceDialog from './features/UpdateAccountBalanceDialog';
 import UpdateBankDialog from './features/UpdateBankDialog';
 import UpdateTransactionDialog from './features/UpdateTransactionDialog';
-
-type ViewKey = 'banks' | 'transactions' | 'importedTransactions';
 
 function App() {
   const [activeView, setActiveView] = useState<ViewKey>('banks');
@@ -60,150 +40,29 @@ function App() {
   const [bankIdForBalanceUpdate, setBankIdForBalanceUpdate] = useState<
     string | null
   >(null);
-  const [bankActionError, setBankActionError] = useState<string | null>(null);
-  const [busyBankId, setBusyBankId] = useState<string | null>(null);
-  const [busyAccountId, setBusyAccountId] = useState<string | null>(null);
 
-  const [
-    { data: banksData, loading: banksLoading, error: banksError },
+  const {
+    banksData,
+    banksLoading,
+    banksError,
     refetchBanks,
-  ] = useAxios<BankResponse[]>({ url: '/api/banks' });
-
-  const [
-    {
-      data: transactionsData,
-      loading: transactionsLoading,
-      error: transactionsError,
-    },
+    transactionsData,
+    transactionsLoading,
+    transactionsError,
     refetchTransactions,
-  ] = useAxios<TransactionResponse[]>({ url: '/api/transactions' });
-
-  const [
-    {
-      data: importedTransactionsData,
-      loading: importedTransactionsLoading,
-      error: importedTransactionsError,
-    },
-  ] = useAxios<ImportedTransactionResponse[]>({
-    url: '/api/imported-transactions',
-  });
-
-  const [, executeUpdateBank] = useAxios<BankResponse>(
-    { method: 'PUT' },
-    { manual: true },
-  );
-  const [, executeDeleteBank] = useAxios<void>(
-    { method: 'DELETE' },
-    { manual: true },
-  );
-  const [, executeDeleteAccount] = useAxios<void>(
-    { method: 'DELETE' },
-    { manual: true },
-  );
-
-  const accounts: BankAccountResponse[] = useMemo(() => {
-    return (banksData ?? [])
-      .flatMap((bank: BankResponse) =>
-        bank.accounts.map((account: BankAccountResponse) => ({
-          ...account,
-          bankId: bank.id,
-          bankName: bank.name,
-        })),
-      )
-      .filter((account: BankAccountResponse) => !account.isInactive);
-  }, [banksData]);
-
-  const totalBalance = useMemo(
-    () =>
-      accounts.reduce(
-        (sum, account) =>
-          sum + (Number.isFinite(account.balance) ? account.balance : 0),
-        0,
-      ),
-    [accounts],
-  );
-
-  const refetchAll = async () => {
-    await Promise.allSettled([refetchBanks(), refetchTransactions()]);
-  };
-
-  const navItems: {
-    key: ViewKey;
-    label: string;
-    icon: React.ReactNode;
-    total?: number;
-  }[] = [
-    {
-      key: 'banks',
-      label: 'Banks',
-      icon: <Building2Icon className="size-4" />,
-      total: banksData?.length ?? 0,
-    },
-    {
-      key: 'transactions',
-      label: 'Transactions',
-      icon: <CoinsIcon className="size-4" />,
-      total: transactionsData?.length ?? 0,
-    },
-    {
-      key: 'importedTransactions',
-      label: 'Imported transactions',
-      icon: <SendIcon className="size-4" />,
-      total: importedTransactionsData?.length ?? 0,
-    },
-  ];
-
-  const handleBankUpdate = async (
-    bankId: string,
-    payload: UpdateBankRequest,
-  ) => {
-    setBankActionError(null);
-    setBusyBankId(bankId);
-    try {
-      await executeUpdateBank({
-        url: `/api/banks/${bankId}`,
-        data: payload,
-      });
-      await refetchBanks();
-    } catch {
-      setBankActionError('Failed to update bank. Please try again.');
-    } finally {
-      setBusyBankId(null);
-    }
-  };
-
-  const handleBankInactive = async (bankId: string) => {
-    setBankActionError(null);
-    setBusyBankId(bankId);
-    try {
-      await executeDeleteBank({
-        url: `/api/banks/${bankId}`,
-      });
-      await refetchBanks();
-    } catch {
-      setBankActionError('Failed to update bank status. Please try again.');
-    } finally {
-      setBusyBankId(null);
-    }
-  };
-
-  const handleDeleteAccount = async (
-    account: BankAccountResponse,
-    bankId: number,
-  ) => {
-    setBankActionError(null);
-    setBusyAccountId(account.id);
-    try {
-      await executeDeleteAccount({
-        url: `/api/banks/${bankId}/${account.id}`,
-      });
-      await refetchBanks();
-    } catch {
-      setBankActionError('Failed to delete account. Please try again.');
-    } finally {
-      setBusyAccountId(null);
-    }
-  };
+    importedTransactionsData,
+    importedTransactionsLoading,
+    importedTransactionsError,
+    accounts,
+    totalBalance,
+    refetchAll,
+    handleBankUpdate,
+    handleBankInactive,
+    handleDeleteAccount,
+    busyBankId,
+    busyAccountId,
+    bankActionError,
+  } = useAppData();
 
   const renderMainContent = () => {
     if (activeView === 'banks') {
@@ -212,26 +71,21 @@ function App() {
           banks={banksData}
           loading={banksLoading}
           errorMessage={banksError ? 'Unable to load banks.' : null}
-          onEdit={(bank) => {
-            setBankToEdit(bank);
-          }}
+          onEdit={setBankToEdit}
           onMarkInactive={(bank) => handleBankInactive(bank.id)}
-          onAddAccount={(bank) => {
-            setBankForNewAccount(bank);
-          }}
+          onAddAccount={setBankForNewAccount}
           onDeleteAccount={handleDeleteAccount}
           onUpdateBalance={(account, bankId) => {
             setAccountToUpdateBalance(account);
             setBankIdForBalanceUpdate(bankId);
           }}
-          onRefresh={() => refetchBanks()}
+          onRefresh={refetchBanks}
           busyBankId={busyBankId}
           busyAccountId={busyAccountId}
           actionError={bankActionError}
         />
       );
     }
-
     if (activeView === 'transactions') {
       return (
         <TransactionsView
@@ -240,13 +94,10 @@ function App() {
           errorMessage={
             transactionsError ? 'Unable to load transactions.' : null
           }
-          onEdit={(transaction) => {
-            setTransactionToEdit(transaction);
-          }}
+          onEdit={setTransactionToEdit}
         />
       );
     }
-
     return (
       <ImportedTransactionsView
         transactions={importedTransactionsData}
@@ -262,137 +113,35 @@ function App() {
 
   return (
     <div className="flex min-h-dvh bg-muted/40">
-      <aside className="hidden w-72 shrink-0 border-r border-border/60 bg-sidebar/60 lg:flex lg:flex-col">
-        <div className="flex h-16 items-center justify-between border-b border-border/60 px-6">
-          <div>
-            <p className="text-sm font-medium text-sidebar-foreground/70">
-              Spending Analyzer
-            </p>
-            <p className="text-lg font-semibold text-sidebar-foreground">
-              Control Center
-            </p>
-          </div>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={refetchAll}
-            aria-label="Refresh data"
-          >
-            <RefreshCcwIcon className="size-4" />
-          </Button>
-        </div>
-        <ScrollArea className="flex-1 px-4">
-          <nav className="flex flex-col gap-1 py-4">
-            {navItems.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => setActiveView(item.key)}
-                className={`flex items-center justify-between rounded-md px-3 py-2 text-sm transition-all hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
-                  activeView === item.key
-                    ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
-                    : 'text-sidebar-foreground'
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  {item.icon}
-                  {item.label}
-                </span>
-                <span className="text-xs font-semibold opacity-70">
-                  {numberFormatter.format(item.total ?? 0)}
-                </span>
-              </button>
-            ))}
-          </nav>
-        </ScrollArea>
-        <Separator className="opacity-60" />
-        <div className="flex flex-col gap-2 px-4 py-4">
-          <Button onClick={() => setIsAddBankOpen(true)}>Add bank</Button>
-          <Button
-            variant="outline"
-            onClick={() => setIsAddTransactionOpen(true)}
-          >
-            Add transaction
-          </Button>
-          <Button variant="outline" onClick={() => setIsAddTransferOpen(true)}>
-            Add transfer
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setIsImportTransactionsOpen(true)}
-          >
-            Import transactions
-          </Button>
-        </div>
-      </aside>
+      <AppSidebar
+        activeView={activeView}
+        onViewChange={setActiveView}
+        onRefresh={refetchAll}
+        counts={{
+          banks: banksData?.length ?? 0,
+          transactions: transactionsData?.length ?? 0,
+          importedTransactions: importedTransactionsData?.length ?? 0,
+        }}
+        actions={{
+          onAddBank: () => setIsAddBankOpen(true),
+          onAddTransaction: () => setIsAddTransactionOpen(true),
+          onAddTransfer: () => setIsAddTransferOpen(true),
+          onImportTransactions: () => setIsImportTransactionsOpen(true),
+        }}
+      />
 
       <main className="flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 p-6">
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Total balance</CardTitle>
-                <BanknoteIcon className="size-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                {banksLoading ? (
-                  <Skeleton className="h-8 w-32" />
-                ) : (
-                  <p className="text-2xl font-semibold">
-                    {currencyFormatter.format(totalBalance)}
-                  </p>
-                )}
-                <CardDescription className="mt-1">
-                  {accounts.length > 0
-                    ? `${accounts.length} active ${
-                        accounts.length === 1 ? 'account' : 'accounts'
-                      }`
-                    : 'No active accounts yet'}
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Active banks</CardTitle>
-                <Building2Icon className="size-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                {banksLoading ? (
-                  <Skeleton className="h-8 w-24" />
-                ) : (
-                  <p className="text-2xl font-semibold">
-                    {numberFormatter.format(
-                      (banksData ?? []).filter(
-                        (bank: BankResponse) => !bank.isInactive,
-                      ).length,
-                    )}
-                  </p>
-                )}
-                <CardDescription className="mt-1">
-                  {(banksData ?? []).length > 0
-                    ? 'Including inactive banks hidden from totals.'
-                    : 'Add your first bank to get started.'}
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="md:col-span-2 xl:col-span-1">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Last refresh</CardTitle>
-                <RefreshCcwIcon className="size-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">
-                  {new Date().toLocaleTimeString()}
-                </p>
-                <CardDescription className="mt-1">
-                  Use the refresh button in the sidebar to sync with the API.
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </section>
-
+          <DashboardCards
+            totalBalance={totalBalance}
+            accountCount={accounts.length}
+            activeBankCount={
+              (banksData ?? []).filter((b: BankResponse) => !b.isInactive)
+                .length
+            }
+            allBankCount={banksData?.length ?? 0}
+            loading={banksLoading}
+          />
           <section>{renderMainContent()}</section>
         </div>
       </main>
@@ -404,7 +153,6 @@ function App() {
           await refetchBanks();
         }}
       />
-
       <AddTransactionDialog
         open={isAddTransactionOpen}
         onOpenChange={setIsAddTransactionOpen}
@@ -413,7 +161,6 @@ function App() {
           await Promise.allSettled([refetchTransactions(), refetchBanks()]);
         }}
       />
-
       <AddTransferDialog
         open={isAddTransferOpen}
         onOpenChange={setIsAddTransferOpen}
@@ -422,7 +169,6 @@ function App() {
           await refetchBanks();
         }}
       />
-
       <UpdateBankDialog
         bank={bankToEdit}
         busy={busyBankId === bankToEdit?.id}
@@ -433,7 +179,6 @@ function App() {
           setBankToEdit(null);
         }}
       />
-
       <AddAccountDialog
         open={bankForNewAccount !== null}
         onOpenChange={(open) => {
@@ -444,7 +189,6 @@ function App() {
           await refetchBanks();
         }}
       />
-
       <UpdateTransactionDialog
         transaction={transactionToEdit}
         accounts={accounts}
@@ -453,7 +197,6 @@ function App() {
           await Promise.allSettled([refetchTransactions(), refetchBanks()]);
         }}
       />
-
       <ImportTransactionsDialog
         open={isImportTransactionsOpen}
         onOpenChange={setIsImportTransactionsOpen}
@@ -462,7 +205,6 @@ function App() {
           await Promise.allSettled([refetchTransactions(), refetchBanks()]);
         }}
       />
-
       <UpdateAccountBalanceDialog
         account={accountToUpdateBalance}
         bankId={bankIdForBalanceUpdate}

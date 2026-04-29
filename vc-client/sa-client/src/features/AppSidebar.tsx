@@ -58,7 +58,7 @@ const AppSidebar = ({
   );
 
   return (
-    <aside className="hidden w-72 shrink-0 border-r border-border/60 bg-sidebar/60 lg:flex lg:flex-col">
+    <aside className="hidden h-full w-72 shrink-0 overflow-hidden border-r border-border/60 bg-sidebar/60 lg:sticky lg:top-0 lg:flex lg:flex-col">
       <div className="flex h-16 items-center justify-between border-b border-border/60 px-6">
         <div>
           <p className="text-sm font-medium text-sidebar-foreground/70">

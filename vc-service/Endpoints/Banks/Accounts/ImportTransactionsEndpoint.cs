@@ -117,10 +117,17 @@ namespace SpendingAnalyzer.Endpoints.Banks.Accounts
                     transactionsToAdd.Add(transaction);
                 }
 
-                await _db.ImportedTransactions.AddRangeAsync(transactionsToAdd, ct);
-                var addedTransactions = await _db.SaveChangesAsync(ct);
+                if (transactionsToAdd.Count > 0)
+                {
+                    await _db.ImportedTransactions.AddRangeAsync(transactionsToAdd, ct);
+                    var addedTransactions = await _db.SaveChangesAsync(ct);
 
-                Response = new ImportTransactionsResponse(addedTransactions);
+                    Response = new ImportTransactionsResponse(addedTransactions);
+                }
+                else
+                {
+                    Response = new ImportTransactionsResponse(0);
+                }
             }
             catch (Exception ex)
             {

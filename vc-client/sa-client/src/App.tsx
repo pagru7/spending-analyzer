@@ -112,7 +112,7 @@ function App() {
   };
 
   return (
-    <div className="flex min-h-dvh bg-muted/40">
+    <div className="flex h-dvh overflow-hidden bg-muted/40">
       <AppSidebar
         activeView={activeView}
         onViewChange={setActiveView}
@@ -130,8 +130,8 @@ function App() {
         }}
       />
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 p-6">
+      <main className="min-h-0 flex-1 overflow-hidden">
+        <div className="flex h-full min-h-0 w-full flex-col gap-8 p-6">
           <DashboardCards
             totalBalance={totalBalance}
             accountCount={accounts.length}
@@ -142,7 +142,9 @@ function App() {
             allBankCount={banksData?.length ?? 0}
             loading={banksLoading}
           />
-          <section>{renderMainContent()}</section>
+          <section id="main-content" className="min-h-0 flex-1 overflow-auto">
+            {renderMainContent()}
+          </section>
         </div>
       </main>
 
